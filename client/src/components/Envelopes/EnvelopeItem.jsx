@@ -1,8 +1,10 @@
 // client/src/components/Envelopes/EnvelopeItem.jsx
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import ProgressBar from "../UI/ProgressBar";
 import EditMilestoneForm from "./EditMilestoneForm";
+import { AuthContext } from "../../context/AuthContext";
+import API from "../../services/api"; // Assurez-vous d'importer l'API pour les mises à jour des milestones
 
 const EnvelopeItem = ({
   envelope,
@@ -15,7 +17,12 @@ const EnvelopeItem = ({
   const [milestoneName, setMilestoneName] = useState("");
   const [milestoneAmount, setMilestoneAmount] = useState("");
   const [error, setError] = useState("");
-  const [editingMilestone, setEditingMilestone] = useState(null);
+  const [editingMilestone, setEditingMilestone] = useState(null); // Seuil en cours d'édition
+  const { updateMilestone } = useContext(AuthContext);
+
+  useEffect(() => {
+    setEditingMilestone(null);
+  }, [envelope.amount, envelope.milestones]);
 
   const handleAddAmount = (e) => {
     e.preventDefault();
@@ -28,32 +35,53 @@ const EnvelopeItem = ({
     setError("");
   };
 
-  const handleAddMilestone = (e) => {
+  const handleAddMilestone = async (e) => {
     e.preventDefault();
     if (milestoneName.trim() === "" || milestoneAmount === "") {
-      setError("Veuillez entrer un nom et un montant pour l'échelon.");
+      setError("Veuillez entrer un nom et un montant pour le seuil.");
       return;
     }
     const milestoneData = {
       name: milestoneName,
       amount: parseFloat(milestoneAmount),
     };
-    onAddMilestone(envelope._id, milestoneData);
-    setMilestoneName("");
-    setMilestoneAmount("");
-    setError("");
-  };
-
-  const handleDeleteMilestone = (milestoneId) => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer cet échelon ?")) {
-      onDeleteMilestone(envelope._id, milestoneId);
+    try {
+      await onAddMilestone(envelope._id, milestoneData);
+      setMilestoneName("");
+      setMilestoneAmount("");
+      setError("");
+    } catch (err) {
+      setError("Erreur lors de l'ajout du seuil.");
     }
   };
 
-  const handleUpdateMilestone = (milestoneId, updatedData) => {
-    // Implémentez la logique de mise à jour des seuils si nécessaire
-    // Cela peut inclure un appel à une fonction du contexte pour mettre à jour le seuil
+  const handleDeleteMilestone = async (milestoneId) => {
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce seuil ?")) {
+      try {
+        await onDeleteMilestone(envelope._id, milestoneId);
+      } catch (err) {
+        setError("Erreur lors de la suppression du seuil.");
+      }
+    }
   };
+
+  const handleUpdateMilestone = async (milestoneId, updatedData) => {
+    try {
+      await updateMilestone(envelope._id, milestoneId, updatedData);
+      setEditingMilestone(null); // Fermer le formulaire d'édition
+      setError("");
+    } catch (err) {
+      setError("Erreur lors de la mise à jour du seuil.");
+    }
+  };
+
+  // Calcul de la progression en pourcentage
+  const calculateProgress = () => {
+    if (envelope.type !== "objectif" || !envelope.goalAmount) return 0;
+    return (envelope.amount / envelope.goalAmount) * 100;
+  };
+
+  const progress = calculateProgress();
 
   return (
     <li
@@ -71,11 +99,11 @@ const EnvelopeItem = ({
         <div>
           <p>Objectif : {envelope.goalAmount} €</p>
           <ProgressBar
-            progress={envelope.progress}
+            progress={progress}
             milestones={envelope.milestones}
             goalAmount={envelope.goalAmount}
           />
-          <p>Progression : {envelope.progress.toFixed(2)}%</p>
+          <p>Progression : {progress.toFixed(2)}%</p>
           <h5>Seuils/Milestones :</h5>
           {envelope.milestones.length === 0 ? (
             <p>Aucun seuil ajouté.</p>

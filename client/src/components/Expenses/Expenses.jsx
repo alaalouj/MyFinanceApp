@@ -59,7 +59,7 @@ const Expenses = () => {
       {expenses.length === 0 ? (
         <p>Aucune dépense enregistrée.</p>
       ) : (
-        <ul>
+        <ul style={{ listStyle: "none", paddingLeft: 0 }}>
           {expenses.map((expense) => (
             <li
               key={expense._id}

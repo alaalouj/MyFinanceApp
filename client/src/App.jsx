@@ -6,6 +6,9 @@ import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/Layout/Navbar";
 import HomePage from "./pages/HomePage";
 import DashboardPage from "./pages/DashboardPage";
+import ExpensesPage from "./pages/ExpensesPage";
+import IncomesPage from "./pages/IncomesPage";
+import EnvelopesPage from "./pages/EnvelopesPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ProtectedRoute from "./components/Layout/ProtectedRoute";
@@ -24,6 +27,30 @@ function App() {
               element={
                 <ProtectedRoute>
                   <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/expenses"
+              element={
+                <ProtectedRoute>
+                  <ExpensesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/incomes"
+              element={
+                <ProtectedRoute>
+                  <IncomesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/envelopes"
+              element={
+                <ProtectedRoute>
+                  <EnvelopesPage />
                 </ProtectedRoute>
               }
             />

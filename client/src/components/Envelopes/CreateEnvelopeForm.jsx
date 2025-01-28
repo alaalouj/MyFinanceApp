@@ -4,27 +4,26 @@ import React, { useState } from "react";
 
 const CreateEnvelopeForm = ({ onAddEnvelope }) => {
   const [name, setName] = useState("");
-  const [type, setType] = useState("simple");
+  const [type, setType] = useState("simple"); // 'simple' or 'objectif'
   const [amount, setAmount] = useState("");
   const [goalAmount, setGoalAmount] = useState("");
-  const [milestoneName, setMilestoneName] = useState("");
-  const [milestoneAmount, setMilestoneAmount] = useState("");
   const [error, setError] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (name.trim() === "") {
-      setError("Veuillez entrer un nom d'enveloppe.");
+      setError("Veuillez entrer un nom pour l'enveloppe.");
       return;
     }
-    if (amount === "") {
-      setError("Veuillez entrer un montant initial.");
+    if (amount === "" || parseFloat(amount) < 0) {
+      setError("Veuillez entrer un montant valide.");
       return;
     }
-    if (type === "objectif" && goalAmount === "") {
-      setError(
-        "Veuillez entrer un montant cible pour une enveloppe avec objectif."
-      );
+    if (
+      type === "objectif" &&
+      (goalAmount === "" || parseFloat(goalAmount) <= 0)
+    ) {
+      setError("Veuillez entrer un montant objectif valide.");
       return;
     }
 
@@ -33,7 +32,6 @@ const CreateEnvelopeForm = ({ onAddEnvelope }) => {
       type,
       amount: parseFloat(amount),
       goalAmount: type === "objectif" ? parseFloat(goalAmount) : undefined,
-      milestones: type === "objectif" ? [] : undefined,
     };
 
     onAddEnvelope(envelopeData);
@@ -67,7 +65,7 @@ const CreateEnvelopeForm = ({ onAddEnvelope }) => {
         type="number"
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
-        placeholder="Montant initial (€)"
+        placeholder="Montant (€)"
         required
         style={{ marginRight: "0.5rem" }}
       />
@@ -76,7 +74,7 @@ const CreateEnvelopeForm = ({ onAddEnvelope }) => {
           type="number"
           value={goalAmount}
           onChange={(e) => setGoalAmount(e.target.value)}
-          placeholder="Montant cible (€)"
+          placeholder="Montant Objectif (€)"
           required
           style={{ marginRight: "0.5rem" }}
         />

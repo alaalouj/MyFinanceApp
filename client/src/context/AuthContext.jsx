@@ -13,6 +13,7 @@ export const AuthProvider = ({ children }) => {
   const [envelopes, setEnvelopes] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [incomes, setIncomes] = useState([]);
+  const [totalBalance, setTotalBalance] = useState(0); // Initialize to 0
 
   // Vérifier si un token existe déjà dans le localStorage lors du montage du composant
   useEffect(() => {
@@ -26,6 +27,12 @@ export const AuthProvider = ({ children }) => {
       fetchIncomes();
     }
   }, []);
+
+  // Recalculate totalBalance whenever accounts change
+  useEffect(() => {
+    const balance = accounts.reduce((acc, account) => acc + account.balance, 0);
+    setTotalBalance(balance);
+  }, [accounts]);
 
   // Fonction de connexion
   const login = async (email, password) => {
@@ -53,6 +60,7 @@ export const AuthProvider = ({ children }) => {
     setEnvelopes([]);
     setExpenses([]);
     setIncomes([]);
+    setTotalBalance(0);
   };
 
   // Comptes et Portefeuilles
@@ -148,6 +156,22 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateMilestone = async (envelopeId, milestoneId, updatedData) => {
+    try {
+      const { data } = await API.put(
+        `/envelopes/${envelopeId}/milestones/${milestoneId}`,
+        updatedData
+      );
+      // Update the envelope's milestones in the state
+      setEnvelopes((prevEnvelopes) =>
+        prevEnvelopes.map((env) => (env._id === envelopeId ? data : env))
+      );
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+
   const deleteMilestone = async (envelopeId, milestoneId) => {
     try {
       const { data } = await API.delete(
@@ -188,6 +212,9 @@ export const AuthProvider = ({ children }) => {
     try {
       const { data } = await API.post("/expenses", expenseData);
       setExpenses((prevExpenses) => [...prevExpenses, data]);
+      // Re-fetch accounts and envelopes to update total balance and progress
+      await fetchAccounts();
+      await fetchEnvelopes();
     } catch (err) {
       console.error(err);
       throw err;
@@ -200,6 +227,9 @@ export const AuthProvider = ({ children }) => {
       setExpenses((prevExpenses) =>
         prevExpenses.map((exp) => (exp._id === expenseId ? data : exp))
       );
+      // Re-fetch accounts and envelopes to update total balance and progress
+      await fetchAccounts();
+      await fetchEnvelopes();
     } catch (err) {
       console.error(err);
       throw err;
@@ -212,6 +242,9 @@ export const AuthProvider = ({ children }) => {
       setExpenses((prevExpenses) =>
         prevExpenses.filter((exp) => exp._id !== expenseId)
       );
+      // Re-fetch accounts and envelopes to update total balance and progress
+      await fetchAccounts();
+      await fetchEnvelopes();
     } catch (err) {
       console.error(err);
       throw err;
@@ -232,6 +265,9 @@ export const AuthProvider = ({ children }) => {
     try {
       const { data } = await API.post("/incomes", incomeData);
       setIncomes((prevIncomes) => [...prevIncomes, data]);
+      // Re-fetch accounts and envelopes to update total balance and progress
+      await fetchAccounts();
+      await fetchEnvelopes();
     } catch (err) {
       console.error(err);
       throw err;
@@ -244,6 +280,9 @@ export const AuthProvider = ({ children }) => {
       setIncomes((prevIncomes) =>
         prevIncomes.map((inc) => (inc._id === incomeId ? data : inc))
       );
+      // Re-fetch accounts and envelopes to update total balance and progress
+      await fetchAccounts();
+      await fetchEnvelopes();
     } catch (err) {
       console.error(err);
       throw err;
@@ -256,17 +295,14 @@ export const AuthProvider = ({ children }) => {
       setIncomes((prevIncomes) =>
         prevIncomes.filter((inc) => inc._id !== incomeId)
       );
+      // Re-fetch accounts and envelopes to update total balance and progress
+      await fetchAccounts();
+      await fetchEnvelopes();
     } catch (err) {
       console.error(err);
       throw err;
     }
   };
-
-  // Calcul de la somme totale actuelle
-  const totalBalance = accounts.reduce(
-    (acc, account) => acc + account.balance,
-    0
-  );
 
   return (
     <AuthContext.Provider
@@ -282,6 +318,7 @@ export const AuthProvider = ({ children }) => {
         createEnvelope,
         updateEnvelope,
         addMilestone,
+        updateMilestone,
         deleteMilestone,
         deleteEnvelope,
         expenses,

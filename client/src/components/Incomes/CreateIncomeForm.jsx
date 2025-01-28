@@ -58,7 +58,8 @@ const CreateIncomeForm = ({ onAddIncome, accounts }) => {
         <option value="">Sélectionner un compte</option>
         {accounts.map((account) => (
           <option key={account._id} value={account._id}>
-            {account.name} ({account.type})
+            {account.name} (
+            {account.type === "compte" ? "Compte Bancaire" : "Portefeuille"})
           </option>
         ))}
       </select>

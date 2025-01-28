@@ -59,7 +59,7 @@ const Incomes = () => {
       {incomes.length === 0 ? (
         <p>Aucun revenu enregistré.</p>
       ) : (
-        <ul>
+        <ul style={{ listStyle: "none", paddingLeft: 0 }}>
           {incomes.map((income) => (
             <li
               key={income._id}

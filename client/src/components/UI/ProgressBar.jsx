@@ -33,10 +33,9 @@ const ProgressBar = ({ progress, milestones = [], goalAmount }) => {
       ></div>
       {/* Affichage des marqueurs pour les milestones */}
       {milestones.map((milestone) => {
-        const milestonePercentage = Math.min(
-          (milestone.amount / goalAmount) * 100,
-          100
-        );
+        const milestonePercentage = goalAmount
+          ? Math.min((milestone.amount / goalAmount) * 100, 100)
+          : 0;
         return (
           <div
             key={milestone._id}
