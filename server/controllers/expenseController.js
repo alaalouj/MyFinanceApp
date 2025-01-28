@@ -15,13 +15,6 @@ exports.createExpense = async (req, res) => {
       return res.status(404).json({ message: "Compte introuvable." });
     }
 
-    // Vérifier si le solde est suffisant
-    if (account.balance < amount) {
-      return res
-        .status(400)
-        .json({ message: "Solde insuffisant dans le compte." });
-    }
-
     const expense = new Expense({
       user: userId,
       account: accountId,
@@ -34,8 +27,11 @@ exports.createExpense = async (req, res) => {
     await expense.save();
 
     // Mettre à jour le solde du compte
-    account.balance -= amount;
+    account.balance -= amount; // Débiter le compte
     await account.save();
+
+    // Populer le compte pour renvoyer les détails complets
+    await expense.populate("account");
 
     res.status(201).json(expense);
   } catch (err) {
@@ -68,61 +64,48 @@ exports.updateExpense = async (req, res) => {
       return res.status(404).json({ message: "Dépense introuvable." });
     }
 
-    // Si le compte est modifié
-    if (accountId && accountId !== expense.account.toString()) {
-      const oldAccount = await Account.findOne({
-        _id: expense.account,
-        user: userId,
-      });
-      const newAccount = await Account.findOne({
-        _id: accountId,
-        user: userId,
-      });
+    // Récupérer l'ancien compte et le nouvel compte si modifié
+    const oldAccount = await Account.findOne({
+      _id: expense.account,
+      user: userId,
+    });
+    let newAccount = oldAccount;
 
+    if (accountId && accountId !== expense.account.toString()) {
+      newAccount = await Account.findOne({ _id: accountId, user: userId });
       if (!newAccount) {
         return res.status(404).json({ message: "Nouveau compte introuvable." });
       }
-
-      // Vérifier si le nouveau compte a suffisamment de solde
-      if (newAccount.balance < amount) {
-        return res
-          .status(400)
-          .json({ message: "Solde insuffisant dans le nouveau compte." });
-      }
-
-      // Mettre à jour les soldes
-      oldAccount.balance += expense.amount; // Rembourser l'ancien compte
-      newAccount.balance -= amount; // Débiter le nouveau compte
-
-      await oldAccount.save();
-      await newAccount.save();
-
       expense.account = accountId;
-    } else if (amount && amount !== expense.amount) {
-      const account = await Account.findOne({
-        _id: expense.account,
-        user: userId,
-      });
+    }
 
-      const difference = amount - expense.amount;
+    // Calcul de la différence de montant
+    const oldAmount = expense.amount;
+    const newAmount = amount !== undefined ? amount : oldAmount;
+    const difference = newAmount - oldAmount;
 
-      if (difference > 0 && account.balance < difference) {
-        return res
-          .status(400)
-          .json({ message: "Solde insuffisant dans le compte." });
-      }
-
-      account.balance -= difference;
-      await account.save();
+    // Mettre à jour le solde des comptes
+    if (newAccount._id.toString() === oldAccount._id.toString()) {
+      oldAccount.balance -= difference;
+      await oldAccount.save();
+    } else {
+      // Débiter le nouvel compte et créditer l'ancien compte
+      newAccount.balance -= newAmount;
+      oldAccount.balance += oldAmount;
+      await newAccount.save();
+      await oldAccount.save();
     }
 
     // Mettre à jour les autres champs
-    if (description) expense.description = description;
-    if (amount) expense.amount = amount;
-    if (category) expense.category = category;
-    if (date) expense.date = date;
+    if (description !== undefined) expense.description = description;
+    if (amount !== undefined) expense.amount = amount;
+    if (category !== undefined) expense.category = category;
+    if (date !== undefined) expense.date = date;
 
     await expense.save();
+
+    // Populer le compte pour renvoyer les détails complets
+    await expense.populate("account");
 
     res.status(200).json(expense);
   } catch (err) {
@@ -140,16 +123,13 @@ exports.deleteExpense = async (req, res) => {
     const expense = await Expense.findOneAndDelete({
       _id: expenseId,
       user: userId,
-    });
+    }).populate("account");
     if (!expense) {
       return res.status(404).json({ message: "Dépense introuvable." });
     }
 
     // Rembourser le montant au compte
-    const account = await Account.findOne({
-      _id: expense.account,
-      user: userId,
-    });
+    const account = expense.account;
     if (account) {
       account.balance += expense.amount;
       await account.save();

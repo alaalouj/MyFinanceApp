@@ -27,8 +27,11 @@ exports.createIncome = async (req, res) => {
     await income.save();
 
     // Mettre à jour le solde du compte
-    account.balance += amount;
+    account.balance += amount; // Créditer le compte
     await account.save();
+
+    // Populer le compte pour renvoyer les détails complets
+    await income.populate("account");
 
     res.status(201).json(income);
   } catch (err) {
@@ -61,48 +64,48 @@ exports.updateIncome = async (req, res) => {
       return res.status(404).json({ message: "Revenu introuvable." });
     }
 
-    // Si le compte est modifié
-    if (accountId && accountId !== income.account.toString()) {
-      const oldAccount = await Account.findOne({
-        _id: income.account,
-        user: userId,
-      });
-      const newAccount = await Account.findOne({
-        _id: accountId,
-        user: userId,
-      });
+    // Récupérer l'ancien compte et le nouvel compte si modifié
+    const oldAccount = await Account.findOne({
+      _id: income.account,
+      user: userId,
+    });
+    let newAccount = oldAccount;
 
+    if (accountId && accountId !== income.account.toString()) {
+      newAccount = await Account.findOne({ _id: accountId, user: userId });
       if (!newAccount) {
         return res.status(404).json({ message: "Nouveau compte introuvable." });
       }
-
-      // Mettre à jour les soldes
-      oldAccount.balance -= income.amount; // Débiter l'ancien compte
-      newAccount.balance += amount; // Créditez le nouveau compte
-
-      await oldAccount.save();
-      await newAccount.save();
-
       income.account = accountId;
-    } else if (amount && amount !== income.amount) {
-      const account = await Account.findOne({
-        _id: income.account,
-        user: userId,
-      });
+    }
 
-      const difference = amount - income.amount;
+    // Calcul de la différence de montant
+    const oldAmount = income.amount;
+    const newAmount = amount !== undefined ? amount : oldAmount;
+    const difference = newAmount - oldAmount;
 
-      account.balance += difference;
-      await account.save();
+    // Mettre à jour le solde des comptes
+    if (newAccount._id.toString() === oldAccount._id.toString()) {
+      oldAccount.balance += difference;
+      await oldAccount.save();
+    } else {
+      // Créditer le nouveau compte et débiter l'ancien compte
+      newAccount.balance += newAmount;
+      oldAccount.balance -= oldAmount;
+      await newAccount.save();
+      await oldAccount.save();
     }
 
     // Mettre à jour les autres champs
-    if (description) income.description = description;
-    if (amount) income.amount = amount;
-    if (category) income.category = category;
-    if (date) income.date = date;
+    if (description !== undefined) income.description = description;
+    if (amount !== undefined) income.amount = amount;
+    if (category !== undefined) income.category = category;
+    if (date !== undefined) income.date = date;
 
     await income.save();
+
+    // Populer le compte pour renvoyer les détails complets
+    await income.populate("account");
 
     res.status(200).json(income);
   } catch (err) {
@@ -120,16 +123,13 @@ exports.deleteIncome = async (req, res) => {
     const income = await Income.findOneAndDelete({
       _id: incomeId,
       user: userId,
-    });
+    }).populate("account");
     if (!income) {
       return res.status(404).json({ message: "Revenu introuvable." });
     }
 
     // Débiter le montant du compte
-    const account = await Account.findOne({
-      _id: income.account,
-      user: userId,
-    });
+    const account = income.account;
     if (account) {
       account.balance -= income.amount;
       await account.save();

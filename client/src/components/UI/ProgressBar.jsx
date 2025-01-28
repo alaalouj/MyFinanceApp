@@ -2,7 +2,7 @@
 
 import React from "react";
 
-const ProgressBar = ({ progress }) => {
+const ProgressBar = ({ progress, milestones = [], goalAmount }) => {
   const cappedProgress = Math.min(Math.max(progress, 0), 100); // Limiter entre 0 et 100
 
   const getColor = () => {
@@ -14,10 +14,11 @@ const ProgressBar = ({ progress }) => {
   return (
     <div
       style={{
+        position: "relative",
         border: "1px solid #ccc",
         borderRadius: "5px",
         width: "100%",
-        height: "20px",
+        height: "30px",
         marginTop: "5px",
       }}
     >
@@ -30,6 +31,41 @@ const ProgressBar = ({ progress }) => {
           transition: "width 0.3s ease-in-out",
         }}
       ></div>
+      {/* Affichage des marqueurs pour les milestones */}
+      {milestones.map((milestone) => {
+        const milestonePercentage = Math.min(
+          (milestone.amount / goalAmount) * 100,
+          100
+        );
+        return (
+          <div
+            key={milestone._id}
+            style={{
+              position: "absolute",
+              left: `${milestonePercentage}%`,
+              top: "0",
+              transform: "translateX(-50%)",
+              width: "2px",
+              height: "100%",
+              backgroundColor: "#000",
+            }}
+            title={`${milestone.name} (${milestone.amount} €)`}
+          >
+            {/* Ajouter un cercle ou un label */}
+            <div
+              style={{
+                position: "absolute",
+                top: "-5px",
+                left: "-5px",
+                width: "10px",
+                height: "10px",
+                borderRadius: "50%",
+                backgroundColor: "#000",
+              }}
+            ></div>
+          </div>
+        );
+      })}
     </div>
   );
 };

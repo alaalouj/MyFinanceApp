@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import ProgressBar from "../UI/ProgressBar";
+import EditMilestoneForm from "./EditMilestoneForm";
 
 const EnvelopeItem = ({
   envelope,
@@ -14,6 +15,7 @@ const EnvelopeItem = ({
   const [milestoneName, setMilestoneName] = useState("");
   const [milestoneAmount, setMilestoneAmount] = useState("");
   const [error, setError] = useState("");
+  const [editingMilestone, setEditingMilestone] = useState(null);
 
   const handleAddAmount = (e) => {
     e.preventDefault();
@@ -42,6 +44,17 @@ const EnvelopeItem = ({
     setError("");
   };
 
+  const handleDeleteMilestone = (milestoneId) => {
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer cet échelon ?")) {
+      onDeleteMilestone(envelope._id, milestoneId);
+    }
+  };
+
+  const handleUpdateMilestone = (milestoneId, updatedData) => {
+    // Implémentez la logique de mise à jour des seuils si nécessaire
+    // Cela peut inclure un appel à une fonction du contexte pour mettre à jour le seuil
+  };
+
   return (
     <li
       style={{
@@ -57,44 +70,71 @@ const EnvelopeItem = ({
       {envelope.type === "objectif" && envelope.goalAmount && (
         <div>
           <p>Objectif : {envelope.goalAmount} €</p>
-          <ProgressBar progress={envelope.progress} />
+          <ProgressBar
+            progress={envelope.progress}
+            milestones={envelope.milestones}
+            goalAmount={envelope.goalAmount}
+          />
           <p>Progression : {envelope.progress.toFixed(2)}%</p>
-          <h5>Échelons/Seuils :</h5>
-          <ul>
-            {envelope.milestones.map((milestone) => (
-              <li
-                key={milestone._id}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <span>
-                  {milestone.name} : {milestone.amount} €{" "}
-                  {milestone.achieved ? "(Atteint)" : ""}
-                </span>
-                <button
-                  onClick={() => onDeleteMilestone(envelope._id, milestone._id)}
+          <h5>Seuils/Milestones :</h5>
+          {envelope.milestones.length === 0 ? (
+            <p>Aucun seuil ajouté.</p>
+          ) : (
+            <ul style={{ listStyle: "none", paddingLeft: 0 }}>
+              {envelope.milestones.map((milestone) => (
+                <li
+                  key={milestone._id}
                   style={{
-                    backgroundColor: "#dc3545",
-                    color: "#fff",
-                    border: "none",
-                    padding: "0.3rem 0.5rem",
-                    cursor: "pointer",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "0.5rem",
                   }}
                 >
-                  Supprimer
-                </button>
-              </li>
-            ))}
-          </ul>
+                  <span>
+                    {milestone.name} : {milestone.amount} €{" "}
+                    {milestone.achieved ? "(Atteint)" : ""}
+                  </span>
+                  <div>
+                    <button
+                      onClick={() => setEditingMilestone(milestone)}
+                      style={{ marginRight: "0.5rem" }}
+                    >
+                      Modifier
+                    </button>
+                    <button
+                      onClick={() => handleDeleteMilestone(milestone._id)}
+                      style={{
+                        backgroundColor: "#dc3545",
+                        color: "#fff",
+                        border: "none",
+                        padding: "0.3rem 0.5rem",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+
+                  {/* Formulaire d'édition du seuil */}
+                  {editingMilestone &&
+                    editingMilestone._id === milestone._id && (
+                      <EditMilestoneForm
+                        milestone={editingMilestone}
+                        onUpdateMilestone={handleUpdateMilestone}
+                        onCancel={() => setEditingMilestone(null)}
+                      />
+                    )}
+                </li>
+              ))}
+            </ul>
+          )}
           <form onSubmit={handleAddMilestone} style={{ marginTop: "0.5rem" }}>
             <input
               type="text"
               value={milestoneName}
               onChange={(e) => setMilestoneName(e.target.value)}
-              placeholder="Nom de l'échelon"
+              placeholder="Nom du seuil"
               required
               style={{ marginRight: "0.5rem" }}
             />
@@ -106,7 +146,7 @@ const EnvelopeItem = ({
               required
               style={{ marginRight: "0.5rem" }}
             />
-            <button type="submit">Ajouter Échelon</button>
+            <button type="submit">Ajouter Seuil</button>
           </form>
         </div>
       )}
