@@ -1,13 +1,19 @@
 // client/src/components/Envelopes/Envelopes.jsx
 
-import React, { useState, useEffect, useContext } from "react";
+import React, { useContext, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import EnvelopeItem from "./EnvelopeItem";
 import CreateEnvelopeForm from "./CreateEnvelopeForm";
 
 const Envelopes = () => {
-  const { envelopes, createEnvelope, updateEnvelope, deleteEnvelope } =
-    useContext(AuthContext);
+  const {
+    envelopes,
+    createEnvelope,
+    updateEnvelope,
+    deleteEnvelope,
+    addMilestone,
+    deleteMilestone,
+  } = useContext(AuthContext);
   const [error, setError] = useState("");
 
   const handleAddEnvelope = async (envelopeData) => {
@@ -16,6 +22,24 @@ const Envelopes = () => {
       setError("");
     } catch (err) {
       setError("Erreur lors de la création de l'enveloppe.");
+    }
+  };
+
+  const handleAddMilestone = async (envelopeId, milestoneData) => {
+    try {
+      await addMilestone(envelopeId, milestoneData);
+      setError("");
+    } catch (err) {
+      setError("Erreur lors de l'ajout de l'échelon.");
+    }
+  };
+
+  const handleDeleteMilestone = async (envelopeId, milestoneId) => {
+    try {
+      await deleteMilestone(envelopeId, milestoneId);
+      setError("");
+    } catch (err) {
+      setError("Erreur lors de la suppression de l'échelon.");
     }
   };
 
@@ -49,6 +73,8 @@ const Envelopes = () => {
             envelope={envelope}
             onUpdate={handleUpdateEnvelope}
             onDelete={handleDeleteEnvelope}
+            onAddMilestone={handleAddMilestone}
+            onDeleteMilestone={handleDeleteMilestone}
           />
         ))}
       </ul>

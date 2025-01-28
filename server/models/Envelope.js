@@ -2,6 +2,23 @@
 
 const mongoose = require("mongoose");
 
+const milestoneSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  amount: {
+    // Montant à atteindre pour ce seuil
+    type: Number,
+    required: true,
+  },
+  achieved: {
+    // Indique si ce seuil a été atteint
+    type: Boolean,
+    default: false,
+  },
+});
+
 const envelopeSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
@@ -9,7 +26,7 @@ const envelopeSchema = new mongoose.Schema({
     required: true,
   },
   name: {
-    // Nom de l'enveloppe (ex: "Voyage", "Courses")
+    // Nom de l'enveloppe (ex: "Voyage", "Fiancailles")
     type: String,
     required: true,
   },
@@ -33,6 +50,7 @@ const envelopeSchema = new mongoose.Schema({
       return this.type === "objectif";
     },
   },
+  milestones: [milestoneSchema], // Liste des échelons/seuils
   progress: {
     // Pourcentage de progression
     type: Number,

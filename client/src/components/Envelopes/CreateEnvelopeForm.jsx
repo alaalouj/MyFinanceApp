@@ -7,6 +7,8 @@ const CreateEnvelopeForm = ({ onAddEnvelope }) => {
   const [type, setType] = useState("simple");
   const [amount, setAmount] = useState("");
   const [goalAmount, setGoalAmount] = useState("");
+  const [milestoneName, setMilestoneName] = useState("");
+  const [milestoneAmount, setMilestoneAmount] = useState("");
   const [error, setError] = useState("");
 
   const handleSubmit = (e) => {
@@ -31,6 +33,7 @@ const CreateEnvelopeForm = ({ onAddEnvelope }) => {
       type,
       amount: parseFloat(amount),
       goalAmount: type === "objectif" ? parseFloat(goalAmount) : undefined,
+      milestones: type === "objectif" ? [] : undefined,
     };
 
     onAddEnvelope(envelopeData);

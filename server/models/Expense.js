@@ -1,4 +1,5 @@
 // server/models/Expense.js
+
 const mongoose = require("mongoose");
 
 const expenseSchema = new mongoose.Schema({
@@ -7,17 +8,25 @@ const expenseSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+  account: {
+    // Référence au compte associé
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Account",
+    required: true,
+  },
+  description: {
+    type: String,
+    required: true,
+  },
   amount: {
+    // Montant de la dépense
     type: Number,
     required: true,
+    min: 0,
   },
   category: {
     type: String,
     required: true,
-    default: "Autre",
-  },
-  description: {
-    type: String,
   },
   date: {
     type: Date,

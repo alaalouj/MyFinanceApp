@@ -6,9 +6,9 @@ const ProgressBar = ({ progress }) => {
   const cappedProgress = Math.min(Math.max(progress, 0), 100); // Limiter entre 0 et 100
 
   const getColor = () => {
-    if (cappedProgress < 50) return "#28a745"; // Vert
-    if (cappedProgress < 80) return "#ffc107"; // Jaune
-    return "#dc3545"; // Rouge
+    if (cappedProgress < 30) return "#dc3545"; // Rouge
+    if (cappedProgress < 70) return "#ffc107"; // Jaune
+    return "#28a745"; // Vert
   };
 
   return (

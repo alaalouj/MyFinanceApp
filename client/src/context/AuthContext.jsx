@@ -11,6 +11,8 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [accounts, setAccounts] = useState([]);
   const [envelopes, setEnvelopes] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+  const [incomes, setIncomes] = useState([]);
 
   // Vérifier si un token existe déjà dans le localStorage lors du montage du composant
   useEffect(() => {
@@ -20,6 +22,8 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
       fetchAccounts();
       fetchEnvelopes();
+      fetchExpenses();
+      fetchIncomes();
     }
   }, []);
 
@@ -32,6 +36,8 @@ export const AuthProvider = ({ children }) => {
       setUser(data.user);
       await fetchAccounts();
       await fetchEnvelopes();
+      await fetchExpenses();
+      await fetchIncomes();
     } catch (err) {
       console.error(err);
       throw err;
@@ -45,9 +51,11 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setAccounts([]);
     setEnvelopes([]);
+    setExpenses([]);
+    setIncomes([]);
   };
 
-  // Fonction pour récupérer les comptes et portefeuilles
+  // Comptes et Portefeuilles
   const fetchAccounts = async () => {
     try {
       const { data } = await API.get("/accounts");
@@ -57,7 +65,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Fonction pour créer un nouveau compte ou portefeuille
   const createAccount = async (accountData) => {
     try {
       const { data } = await API.post("/accounts", accountData);
@@ -68,7 +75,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Fonction pour mettre à jour le solde d'un compte ou portefeuille
   const updateAccount = async (accountId, amount) => {
     try {
       const { data } = await API.put(`/accounts/${accountId}`, { amount });
@@ -83,7 +89,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Fonction pour supprimer un compte ou portefeuille
   const deleteAccount = async (accountId) => {
     try {
       await API.delete(`/accounts/${accountId}`);
@@ -96,7 +101,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Fonction pour récupérer les enveloppes
+  // Enveloppes Budgétaires
   const fetchEnvelopes = async () => {
     try {
       const { data } = await API.get("/envelopes");
@@ -106,7 +111,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Fonction pour créer une nouvelle enveloppe
   const createEnvelope = async (envelopeData) => {
     try {
       const { data } = await API.post("/envelopes", envelopeData);
@@ -117,7 +121,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Fonction pour mettre à jour une enveloppe
   const updateEnvelope = async (envelopeId, amount) => {
     try {
       const { data } = await API.put(`/envelopes/${envelopeId}`, { amount });
@@ -130,12 +133,128 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Fonction pour supprimer une enveloppe
+  const addMilestone = async (envelopeId, milestoneData) => {
+    try {
+      const { data } = await API.post(
+        `/envelopes/${envelopeId}/milestones`,
+        milestoneData
+      );
+      setEnvelopes((prevEnvelopes) =>
+        prevEnvelopes.map((env) => (env._id === envelopeId ? data : env))
+      );
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+
+  const deleteMilestone = async (envelopeId, milestoneId) => {
+    try {
+      const { data } = await API.delete(
+        `/envelopes/${envelopeId}/milestones/${milestoneId}`
+      );
+      setEnvelopes((prevEnvelopes) =>
+        prevEnvelopes.map((env) => (env._id === envelopeId ? data : env))
+      );
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+
   const deleteEnvelope = async (envelopeId) => {
     try {
       await API.delete(`/envelopes/${envelopeId}`);
       setEnvelopes((prevEnvelopes) =>
         prevEnvelopes.filter((env) => env._id !== envelopeId)
+      );
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+
+  // Dépenses
+  const fetchExpenses = async () => {
+    try {
+      const { data } = await API.get("/expenses");
+      setExpenses(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const createExpense = async (expenseData) => {
+    try {
+      const { data } = await API.post("/expenses", expenseData);
+      setExpenses((prevExpenses) => [...prevExpenses, data]);
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+
+  const updateExpense = async (expenseId, expenseData) => {
+    try {
+      const { data } = await API.put(`/expenses/${expenseId}`, expenseData);
+      setExpenses((prevExpenses) =>
+        prevExpenses.map((exp) => (exp._id === expenseId ? data : exp))
+      );
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+
+  const deleteExpense = async (expenseId) => {
+    try {
+      await API.delete(`/expenses/${expenseId}`);
+      setExpenses((prevExpenses) =>
+        prevExpenses.filter((exp) => exp._id !== expenseId)
+      );
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+
+  // Revenus
+  const fetchIncomes = async () => {
+    try {
+      const { data } = await API.get("/incomes");
+      setIncomes(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const createIncome = async (incomeData) => {
+    try {
+      const { data } = await API.post("/incomes", incomeData);
+      setIncomes((prevIncomes) => [...prevIncomes, data]);
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+
+  const updateIncome = async (incomeId, incomeData) => {
+    try {
+      const { data } = await API.put(`/incomes/${incomeId}`, incomeData);
+      setIncomes((prevIncomes) =>
+        prevIncomes.map((inc) => (inc._id === incomeId ? data : inc))
+      );
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+
+  const deleteIncome = async (incomeId) => {
+    try {
+      await API.delete(`/incomes/${incomeId}`);
+      setIncomes((prevIncomes) =>
+        prevIncomes.filter((inc) => inc._id !== incomeId)
       );
     } catch (err) {
       console.error(err);
@@ -162,7 +281,17 @@ export const AuthProvider = ({ children }) => {
         envelopes,
         createEnvelope,
         updateEnvelope,
+        addMilestone,
+        deleteMilestone,
         deleteEnvelope,
+        expenses,
+        createExpense,
+        updateExpense,
+        deleteExpense,
+        incomes,
+        createIncome,
+        updateIncome,
+        deleteIncome,
         totalBalance,
       }}
     >

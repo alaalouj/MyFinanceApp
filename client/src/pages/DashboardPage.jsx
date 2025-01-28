@@ -2,9 +2,8 @@
 
 import React from "react";
 import Accounts from "../components/Accounts/Accounts";
-import Expenses from "../components/Dashboard/Expenses";
-import Incomes from "../components/Dashboard/Incomes";
-import Goals from "../components/Dashboard/Goals";
+import Expenses from "../components/Expenses/Expenses";
+import Incomes from "../components/Incomes/Incomes";
 import Envelopes from "../components/Envelopes/Envelopes";
 
 const DashboardPage = () => {
@@ -14,7 +13,6 @@ const DashboardPage = () => {
       <Accounts />
       <Expenses />
       <Incomes />
-      <Goals />
       <Envelopes />
     </div>
   );

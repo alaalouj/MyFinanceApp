@@ -4,7 +4,7 @@ import axios from "axios";
 
 // Création d'une instance Axios avec l'URL de base de l'API
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
 });
 
 // Intercepteur pour ajouter le token d'authentification à chaque requête

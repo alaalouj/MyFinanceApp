@@ -1,4 +1,5 @@
 // server/models/Income.js
+
 const mongoose = require("mongoose");
 
 const incomeSchema = new mongoose.Schema({
@@ -7,12 +8,24 @@ const incomeSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
-  amount: {
-    type: Number,
+  account: {
+    // Référence au compte associé
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Account",
     required: true,
   },
-  source: {
-    type: String, // Salaire, dividendes, freelance, etc.
+  description: {
+    type: String,
+    required: true,
+  },
+  amount: {
+    // Montant du revenu
+    type: Number,
+    required: true,
+    min: 0,
+  },
+  category: {
+    type: String,
     required: true,
   },
   date: {

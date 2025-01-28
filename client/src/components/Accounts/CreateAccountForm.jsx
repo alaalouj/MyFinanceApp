@@ -14,8 +14,8 @@ const CreateAccountForm = ({ onAddAccount }) => {
       setError("Veuillez entrer un nom de compte.");
       return;
     }
-    if (balance === "") {
-      setError("Veuillez entrer un solde initial.");
+    if (balance === "" || parseFloat(balance) < 0) {
+      setError("Veuillez entrer un solde initial valide.");
       return;
     }
 

@@ -9,10 +9,8 @@ const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const expenseRoutes = require("./routes/expenseRoutes");
 const incomeRoutes = require("./routes/incomeRoutes");
-const goalRoutes = require("./routes/goalRoutes");
-const savingRoutes = require("./routes/savingRoutes"); // Anciennement pour épargnes
 const envelopeRoutes = require("./routes/envelopeRoutes");
-const accountRoutes = require("./routes/accountRoutes"); // Nouvelle route
+const accountRoutes = require("./routes/accountRoutes"); // Route des comptes
 
 const app = express();
 
@@ -27,7 +25,6 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/expenses", expenseRoutes);
 app.use("/api/incomes", incomeRoutes);
-app.use("/api/goals", goalRoutes);
 app.use("/api/envelopes", envelopeRoutes);
 app.use("/api/accounts", accountRoutes); // Utiliser la nouvelle route
 

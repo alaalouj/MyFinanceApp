@@ -8,6 +8,8 @@ const {
   getEnvelopes,
   updateEnvelope,
   deleteEnvelope,
+  addMilestone,
+  deleteMilestone,
 } = require("../controllers/envelopeController");
 
 // Créer une enveloppe
@@ -21,5 +23,11 @@ router.put("/:envelopeId", auth, updateEnvelope);
 
 // Supprimer une enveloppe
 router.delete("/:envelopeId", auth, deleteEnvelope);
+
+// Ajouter un échelon à une enveloppe
+router.post("/:envelopeId/milestones", auth, addMilestone);
+
+// Supprimer un échelon d'une enveloppe
+router.delete("/:envelopeId/milestones/:milestoneId", auth, deleteMilestone);
 
 module.exports = router;

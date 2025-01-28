@@ -70,6 +70,7 @@ const Accounts = () => {
                 name="amount"
                 placeholder="Ajouter/Retirer (€)"
                 required
+                style={{ marginRight: "0.5rem" }}
               />
               <button type="submit">Mettre à jour</button>
             </form>
