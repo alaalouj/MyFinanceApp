@@ -3,14 +3,13 @@
 import React, { useContext, useState, useEffect } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import CreateIncomeForm from "./CreateIncomeForm";
-import EditIncomeForm from "./EditIncomeForm"; // Nouveau composant pour l'édition
+import IncomeItem from "./IncomeItem";
 
 const Incomes = () => {
   const { incomes, createIncome, updateIncome, deleteIncome, accounts } =
     useContext(AuthContext);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const [editingIncome, setEditingIncome] = useState(null); // Revenu en cours d'édition
 
   // Mettre à jour l'état de chargement une fois les revenus chargés
   useEffect(() => {
@@ -31,7 +30,6 @@ const Incomes = () => {
   const handleUpdateIncome = async (incomeId, incomeData) => {
     try {
       await updateIncome(incomeId, incomeData);
-      setEditingIncome(null); // Fermer le formulaire d'édition
       setError("");
     } catch (err) {
       setError("Erreur lors de la mise à jour du revenu.");
@@ -59,70 +57,27 @@ const Incomes = () => {
       {incomes.length === 0 ? (
         <p>Aucun revenu enregistré.</p>
       ) : (
-        <ul style={{ listStyle: "none", paddingLeft: 0 }}>
+        <ul style={styles.list}>
           {incomes.map((income) => (
-            <li
+            <IncomeItem
               key={income._id}
-              style={{
-                marginBottom: "1rem",
-                border: "1px solid #ccc",
-                padding: "1rem",
-                borderRadius: "5px",
-              }}
-            >
-              <h4>{income.description}</h4>
-              <p>
-                Compte :{" "}
-                {income.account ? (
-                  <>
-                    {income.account.name} (
-                    {income.account.type === "compte"
-                      ? "Compte Bancaire"
-                      : "Portefeuille"}
-                    )
-                  </>
-                ) : (
-                  "Compte inconnu (N/A)"
-                )}
-              </p>
-              <p>Catégorie : {income.category}</p>
-              <p>Montant : {income.amount} €</p>
-              <p>Date : {new Date(income.date).toLocaleDateString()}</p>
-              {/* Boutons pour modifier et supprimer */}
-              <button
-                onClick={() => setEditingIncome(income)}
-                style={{ marginRight: "0.5rem" }}
-              >
-                Modifier
-              </button>
-              <button
-                onClick={() => handleDeleteIncome(income._id)}
-                style={{
-                  backgroundColor: "#dc3545",
-                  color: "#fff",
-                  border: "none",
-                  padding: "0.3rem 0.5rem",
-                  cursor: "pointer",
-                }}
-              >
-                Supprimer
-              </button>
-
-              {/* Formulaire d'édition */}
-              {editingIncome && editingIncome._id === income._id && (
-                <EditIncomeForm
-                  income={editingIncome}
-                  onUpdateIncome={handleUpdateIncome}
-                  onCancel={() => setEditingIncome(null)}
-                  accounts={accounts}
-                />
-              )}
-            </li>
+              income={income}
+              onUpdate={handleUpdateIncome}
+              onDelete={handleDeleteIncome}
+              accounts={accounts}
+            />
           ))}
         </ul>
       )}
     </div>
   );
+};
+
+const styles = {
+  list: {
+    listStyle: "none",
+    paddingLeft: 0,
+  },
 };
 
 export default Incomes;

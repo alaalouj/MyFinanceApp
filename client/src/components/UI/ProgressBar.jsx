@@ -12,23 +12,12 @@ const ProgressBar = ({ progress, milestones = [], goalAmount }) => {
   };
 
   return (
-    <div
-      style={{
-        position: "relative",
-        border: "1px solid #ccc",
-        borderRadius: "5px",
-        width: "100%",
-        height: "30px",
-        marginTop: "5px",
-      }}
-    >
+    <div style={styles.container}>
       <div
         style={{
+          ...styles.progress,
           width: `${cappedProgress}%`,
           backgroundColor: getColor(),
-          height: "100%",
-          borderRadius: "5px",
-          transition: "width 0.3s ease-in-out",
         }}
       ></div>
       {/* Affichage des marqueurs pour les milestones */}
@@ -40,26 +29,15 @@ const ProgressBar = ({ progress, milestones = [], goalAmount }) => {
           <div
             key={milestone._id}
             style={{
-              position: "absolute",
+              ...styles.milestone,
               left: `${milestonePercentage}%`,
-              top: "0",
-              transform: "translateX(-50%)",
-              width: "2px",
-              height: "100%",
-              backgroundColor: "#000",
             }}
             title={`${milestone.name} (${milestone.amount} €)`}
           >
-            {/* Ajouter un cercle ou un label */}
             <div
               style={{
-                position: "absolute",
-                top: "-5px",
-                left: "-5px",
-                width: "10px",
-                height: "10px",
-                borderRadius: "50%",
-                backgroundColor: "#000",
+                ...styles.milestoneDot,
+                backgroundColor: milestone.achieved ? "#28a745" : "#dc3545",
               }}
             ></div>
           </div>
@@ -67,6 +45,39 @@ const ProgressBar = ({ progress, milestones = [], goalAmount }) => {
       })}
     </div>
   );
+};
+
+const styles = {
+  container: {
+    position: "relative",
+    border: "1px solid #ccc",
+    borderRadius: "5px",
+    width: "100%",
+    height: "20px",
+    marginTop: "5px",
+    backgroundColor: "#e9ecef",
+  },
+  progress: {
+    height: "100%",
+    borderRadius: "5px",
+    transition: "width 0.3s ease-in-out",
+  },
+  milestone: {
+    position: "absolute",
+    top: "0",
+    transform: "translateX(-50%)",
+    width: "2px",
+    height: "100%",
+    backgroundColor: "#000",
+  },
+  milestoneDot: {
+    position: "absolute",
+    top: "-5px",
+    left: "-5px",
+    width: "10px",
+    height: "10px",
+    borderRadius: "50%",
+  },
 };
 
 export default ProgressBar;

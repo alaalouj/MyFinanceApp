@@ -81,7 +81,7 @@ const Envelopes = () => {
       {envelopes.length === 0 ? (
         <p>Aucune enveloppe enregistrée.</p>
       ) : (
-        <ul style={{ listStyle: "none", paddingLeft: 0 }}>
+        <ul style={styles.list}>
           {envelopes.map((envelope) => (
             <EnvelopeItem
               key={envelope._id}
@@ -96,6 +96,13 @@ const Envelopes = () => {
       )}
     </div>
   );
+};
+
+const styles = {
+  list: {
+    listStyle: "none",
+    paddingLeft: 0,
+  },
 };
 
 export default Envelopes;
