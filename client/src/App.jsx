@@ -9,6 +9,7 @@ import DashboardPage from "./pages/DashboardPage";
 import ExpensesPage from "./pages/ExpensesPage";
 import IncomesPage from "./pages/IncomesPage";
 import EnvelopesPage from "./pages/EnvelopesPage";
+import BudgetPage from "./pages/BudgetPage"; // Importer la nouvelle page
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ProtectedRoute from "./components/Layout/ProtectedRoute";
@@ -51,6 +52,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <EnvelopesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/budget"
+              element={
+                <ProtectedRoute>
+                  <BudgetPage />
                 </ProtectedRoute>
               }
             />

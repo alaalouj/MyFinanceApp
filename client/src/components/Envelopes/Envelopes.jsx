@@ -13,6 +13,7 @@ const Envelopes = () => {
     deleteEnvelope,
     addMilestone,
     deleteMilestone,
+    updateMilestone,
   } = useContext(AuthContext);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -69,6 +70,19 @@ const Envelopes = () => {
     }
   };
 
+  const handleUpdateMilestone = async (
+    envelopeId,
+    milestoneId,
+    updatedData
+  ) => {
+    try {
+      await updateMilestone(envelopeId, milestoneId, updatedData);
+      setError("");
+    } catch (err) {
+      setError("Erreur lors de la mise à jour du seuil.");
+    }
+  };
+
   if (loading) {
     return <div>Chargement des enveloppes...</div>;
   }
@@ -90,6 +104,7 @@ const Envelopes = () => {
               onDelete={handleDeleteEnvelope}
               onAddMilestone={handleAddMilestone}
               onDeleteMilestone={handleDeleteMilestone}
+              onUpdateMilestone={handleUpdateMilestone} // Assurez-vous de passer cette prop
             />
           ))}
         </ul>

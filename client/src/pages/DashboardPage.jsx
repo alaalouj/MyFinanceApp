@@ -2,9 +2,17 @@
 
 import React, { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
+import EnvelopeItem from "../components/Envelopes/EnvelopeItem";
 
 const DashboardPage = () => {
   const { totalBalance, accounts, envelopes } = useContext(AuthContext);
+
+  // Définir des fonctions vides pour éviter les erreurs
+  const handleUpdateEnvelope = () => {};
+  const handleDeleteEnvelope = () => {};
+  const handleAddMilestone = () => {};
+  const handleDeleteMilestone = () => {};
+  const handleUpdateMilestone = () => {};
 
   return (
     <div style={{ padding: "2rem" }}>
@@ -17,9 +25,9 @@ const DashboardPage = () => {
       {accounts.length === 0 ? (
         <p>Aucun compte enregistré.</p>
       ) : (
-        <ul>
+        <ul style={styles.list}>
           {accounts.map((account) => (
-            <li key={account._id}>
+            <li key={account._id} style={styles.listItem}>
               {account.name} (
               {account.type === "compte" ? "Compte Bancaire" : "Portefeuille"})
               - {account.balance} €
@@ -32,18 +40,33 @@ const DashboardPage = () => {
       {envelopes.length === 0 ? (
         <p>Aucune enveloppe enregistrée.</p>
       ) : (
-        <ul>
+        <ul style={styles.list}>
           {envelopes.map((envelope) => (
-            <li key={envelope._id}>
-              {envelope.name} - {envelope.amount} €{" "}
-              {envelope.type === "objectif" &&
-                ` (Objectif: ${envelope.goalAmount} €)`}
-            </li>
+            <EnvelopeItem
+              key={envelope._id}
+              envelope={envelope}
+              onUpdate={handleUpdateEnvelope} // Fonction vide
+              onDelete={handleDeleteEnvelope} // Fonction vide
+              onAddMilestone={handleAddMilestone} // Fonction vide
+              onDeleteMilestone={handleDeleteMilestone} // Fonction vide
+              onUpdateMilestone={handleUpdateMilestone} // Fonction vide
+              disableExpand={true} // Nouveau prop pour désactiver l'expansion
+            />
           ))}
         </ul>
       )}
     </div>
   );
+};
+
+const styles = {
+  list: {
+    listStyle: "none",
+    paddingLeft: 0,
+  },
+  listItem: {
+    marginBottom: "0.5rem",
+  },
 };
 
 export default DashboardPage;

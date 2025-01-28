@@ -11,12 +11,15 @@ const EnvelopeItem = ({
   onDelete,
   onAddMilestone,
   onDeleteMilestone,
+  onUpdateMilestone,
+  disableExpand, // Nouveau prop pour désactiver l'expansion
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditingEnvelope, setIsEditingEnvelope] = useState(false);
   const [editingMilestone, setEditingMilestone] = useState(null);
 
   const toggleExpand = () => {
+    if (disableExpand) return; // Ne pas permettre l'expansion si disableExpand est true
     setIsExpanded(!isExpanded);
     // Fermer les formulaires d'édition si l'élément est réduit
     if (isExpanded) {
@@ -39,6 +42,22 @@ const EnvelopeItem = ({
         <span>{envelope.name}</span>
         <span>{envelope.amount} €</span>
       </div>
+
+      {/* Affichage de la ProgressBar en dessous si type est 'objectif' */}
+      {envelope.type === "objectif" && envelope.goalAmount && (
+        <div style={{ marginTop: "0.5rem" }}>
+          <ProgressBar
+            progress={(envelope.amount / envelope.goalAmount) * 100}
+            milestones={envelope.milestones}
+            goalAmount={envelope.goalAmount}
+          />
+          <p>
+            <strong>Progression :</strong>{" "}
+            {((envelope.amount / envelope.goalAmount) * 100).toFixed(2)}%
+          </p>
+        </div>
+      )}
+
       {isExpanded && (
         <div style={styles.details}>
           {!isEditingEnvelope ? (
@@ -51,16 +70,6 @@ const EnvelopeItem = ({
                 <>
                   <p>
                     <strong>Objectif :</strong> {envelope.goalAmount} €
-                  </p>
-                  <ProgressBar
-                    progress={(envelope.amount / envelope.goalAmount) * 100}
-                    milestones={envelope.milestones}
-                    goalAmount={envelope.goalAmount}
-                  />
-                  <p>
-                    <strong>Progression :</strong>{" "}
-                    {((envelope.amount / envelope.goalAmount) * 100).toFixed(2)}
-                    %
                   </p>
                 </>
               )}

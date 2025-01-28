@@ -13,6 +13,7 @@ export const AuthProvider = ({ children }) => {
   const [envelopes, setEnvelopes] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [incomes, setIncomes] = useState([]);
+  const [budgets, setBudgets] = useState([]); // Ajout de l'état des budgets
   const [totalBalance, setTotalBalance] = useState(0); // Initialize to 0
 
   // Vérifier si un token existe déjà dans le localStorage lors du montage du composant
@@ -25,6 +26,7 @@ export const AuthProvider = ({ children }) => {
       fetchEnvelopes();
       fetchExpenses();
       fetchIncomes();
+      fetchBudgets(); // Charger les budgets
     }
   }, []);
 
@@ -45,6 +47,7 @@ export const AuthProvider = ({ children }) => {
       await fetchEnvelopes();
       await fetchExpenses();
       await fetchIncomes();
+      await fetchBudgets(); // Charger les budgets
     } catch (err) {
       console.error(err);
       throw err;
@@ -60,6 +63,7 @@ export const AuthProvider = ({ children }) => {
     setEnvelopes([]);
     setExpenses([]);
     setIncomes([]);
+    setBudgets([]); // Réinitialiser les budgets
     setTotalBalance(0);
   };
 
@@ -304,6 +308,50 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Budgets
+  const fetchBudgets = async () => {
+    try {
+      const { data } = await API.get("/budgets");
+      setBudgets(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const createBudget = async (budgetData) => {
+    try {
+      const { data } = await API.post("/budgets", budgetData);
+      setBudgets((prevBudgets) => [...prevBudgets, data]);
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+
+  const updateBudget = async (budgetId, budgetData) => {
+    try {
+      const { data } = await API.put(`/budgets/${budgetId}`, budgetData);
+      setBudgets((prevBudgets) =>
+        prevBudgets.map((bud) => (bud._id === budgetId ? data : bud))
+      );
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+
+  const deleteBudget = async (budgetId) => {
+    try {
+      await API.delete(`/budgets/${budgetId}`);
+      setBudgets((prevBudgets) =>
+        prevBudgets.filter((bud) => bud._id !== budgetId)
+      );
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -329,6 +377,10 @@ export const AuthProvider = ({ children }) => {
         createIncome,
         updateIncome,
         deleteIncome,
+        budgets, // Fournir les budgets
+        createBudget,
+        updateBudget,
+        deleteBudget,
         totalBalance,
       }}
     >

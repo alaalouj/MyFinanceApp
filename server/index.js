@@ -11,6 +11,7 @@ const expenseRoutes = require("./routes/expenseRoutes");
 const incomeRoutes = require("./routes/incomeRoutes");
 const envelopeRoutes = require("./routes/envelopeRoutes");
 const accountRoutes = require("./routes/accountRoutes"); // Route des comptes
+const budgetRoutes = require("./routes/budgetRoutes");
 
 const app = express();
 
@@ -26,7 +27,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/expenses", expenseRoutes);
 app.use("/api/incomes", incomeRoutes);
 app.use("/api/envelopes", envelopeRoutes);
-app.use("/api/accounts", accountRoutes); // Utiliser la nouvelle route
+app.use("/api/accounts", accountRoutes);
+app.use("/api/budgets", budgetRoutes);
 
 // Lancement du serveur
 const PORT = process.env.PORT || 5000;
