@@ -1,40 +1,38 @@
-// client/src/pages/RegisterPage.jsx
+// client/src/pages/LoginPage.jsx
 
-import React, { useState } from "react";
-import API from "../services/api";
+import React, { useState, useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
-const RegisterPage = () => {
+const LoginPage = () => {
+  const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
-  const handleRegister = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await API.post("/auth/register", { email, password });
-      setMessage(data.message);
-      navigate("/login");
+      await login(email, password);
+      navigate("/dashboard");
     } catch (err) {
-      setMessage(
-        err.response?.data?.message || "Erreur lors de l'inscription."
-      );
+      setError(err.response?.data?.message || "Erreur lors de la connexion.");
     }
   };
 
   return (
     <div>
-      <h2>Inscription</h2>
-      <form onSubmit={handleRegister}>
+      <h2>Connexion</h2>
+      <form onSubmit={handleLogin}>
         <div>
           <label>Email</label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Votre email"
+            placeholder="Entrez votre email"
             required
           />
         </div>
@@ -44,15 +42,15 @@ const RegisterPage = () => {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Votre mot de passe"
+            placeholder="Entrez votre mot de passe"
             required
           />
         </div>
-        <button type="submit">S'inscrire</button>
+        <button type="submit">Se connecter</button>
+        {error && <p style={{ color: "red" }}>{error}</p>}
       </form>
-      {message && <p>{message}</p>}
     </div>
   );
 };
 
-export default RegisterPage;
+export default LoginPage;

@@ -1,18 +1,24 @@
 // client/src/services/api.js
+
 import axios from "axios";
 
-// On récupère l'URL depuis le .env (VITE_API_URL)
+// Création d'une instance Axios avec l'URL de base de l'API
 const API = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
 });
 
-// Intercepteur pour ajouter le token dans les en-têtes si présent
-API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+// Intercepteur pour ajouter le token d'authentification à chaque requête
+API.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
-  return config;
-});
+);
 
 export default API;

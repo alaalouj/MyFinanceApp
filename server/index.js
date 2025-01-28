@@ -1,4 +1,5 @@
 // server/index.js
+
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
@@ -9,6 +10,8 @@ const authRoutes = require("./routes/authRoutes");
 const expenseRoutes = require("./routes/expenseRoutes");
 const incomeRoutes = require("./routes/incomeRoutes");
 const goalRoutes = require("./routes/goalRoutes");
+const savingRoutes = require("./routes/savingRoutes"); // Nouvelle route
+const envelopeRoutes = require("./routes/envelopeRoutes"); // Nouvelle route
 
 const app = express();
 
@@ -24,6 +27,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/expenses", expenseRoutes);
 app.use("/api/incomes", incomeRoutes);
 app.use("/api/goals", goalRoutes);
+app.use("/api/savings", savingRoutes); // Utiliser la nouvelle route
+app.use("/api/envelopes", envelopeRoutes); // Utiliser la nouvelle route
 
 // Lancement du serveur
 const PORT = process.env.PORT || 5000;

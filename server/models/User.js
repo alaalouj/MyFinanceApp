@@ -1,4 +1,5 @@
 // server/models/User.js
+
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
@@ -12,7 +13,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  // Vous pouvez stocker d'autres informations utilisateur si nécessaire
+  // Champs d'épargne actuelle
+  savings: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Saving",
+    },
+  ],
+  // Vous pouvez ajouter d'autres informations utilisateur si nécessaire
 });
 
 // Middleware Mongoose pour hacher le mot de passe avant la sauvegarde
