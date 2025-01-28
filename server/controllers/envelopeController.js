@@ -53,19 +53,30 @@ exports.updateEnvelope = async (req, res) => {
   try {
     const userId = req.userId;
     const { envelopeId } = req.params;
-    const { amount } = req.body;
+    const { amount } = req.body; // Montant à ajouter (positif) ou retirer (négatif)
 
     const envelope = await Envelope.findOne({ _id: envelopeId, user: userId });
     if (!envelope) {
       return res.status(404).json({ message: "Enveloppe introuvable." });
     }
 
-    envelope.amount += amount; // Ajouter (si positif) ou retirer (si négatif) de l'argent
+    // Calculer le nouveau montant
+    const newAmount = envelope.amount + amount;
 
-    // Si l'enveloppe a un objectif, recalculer la progression
+    // Si retirer de l'argent, assurer que le solde ne devient pas négatif
+    if (newAmount < 0) {
+      return res
+        .status(400)
+        .json({ message: "Solde insuffisant dans l'enveloppe." });
+    }
+
+    envelope.amount = newAmount;
+
+    // Recalculer la progression si applicable
     if (envelope.type === "objectif" && envelope.goalAmount) {
       envelope.progress = (envelope.amount / envelope.goalAmount) * 100;
       if (envelope.progress > 100) envelope.progress = 100; // Limiter à 100%
+      if (envelope.progress < 0) envelope.progress = 0; // Limiter à 0%
     }
 
     await envelope.save();

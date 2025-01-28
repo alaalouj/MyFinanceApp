@@ -11,7 +11,15 @@ const CreateEnvelopeForm = ({ onAddEnvelope }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (type === "objectif" && !goalAmount) {
+    if (name.trim() === "") {
+      setError("Veuillez entrer un nom d'enveloppe.");
+      return;
+    }
+    if (amount === "") {
+      setError("Veuillez entrer un montant initial.");
+      return;
+    }
+    if (type === "objectif" && goalAmount === "") {
       setError(
         "Veuillez entrer un montant cible pour une enveloppe avec objectif."
       );
@@ -34,7 +42,7 @@ const CreateEnvelopeForm = ({ onAddEnvelope }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} style={{ marginBottom: "1rem" }}>
       <h4>Créer une nouvelle enveloppe</h4>
       <input
         type="text"
@@ -42,8 +50,13 @@ const CreateEnvelopeForm = ({ onAddEnvelope }) => {
         onChange={(e) => setName(e.target.value)}
         placeholder="Nom de l'enveloppe"
         required
+        style={{ marginRight: "0.5rem" }}
       />
-      <select value={type} onChange={(e) => setType(e.target.value)}>
+      <select
+        value={type}
+        onChange={(e) => setType(e.target.value)}
+        style={{ marginRight: "0.5rem" }}
+      >
         <option value="simple">Simple</option>
         <option value="objectif">Avec Objectif</option>
       </select>
@@ -53,6 +66,7 @@ const CreateEnvelopeForm = ({ onAddEnvelope }) => {
         onChange={(e) => setAmount(e.target.value)}
         placeholder="Montant initial (€)"
         required
+        style={{ marginRight: "0.5rem" }}
       />
       {type === "objectif" && (
         <input
@@ -61,6 +75,7 @@ const CreateEnvelopeForm = ({ onAddEnvelope }) => {
           onChange={(e) => setGoalAmount(e.target.value)}
           placeholder="Montant cible (€)"
           required
+          style={{ marginRight: "0.5rem" }}
         />
       )}
       <button type="submit">Créer</button>

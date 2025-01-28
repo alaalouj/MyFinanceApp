@@ -19,7 +19,14 @@ const EnvelopeItem = ({ envelope, onUpdate, onDelete }) => {
   };
 
   return (
-    <li>
+    <li
+      style={{
+        marginBottom: "1rem",
+        border: "1px solid #ccc",
+        padding: "1rem",
+        borderRadius: "5px",
+      }}
+    >
       <h4>{envelope.name}</h4>
       <p>Type : {envelope.type === "simple" ? "Simple" : "Avec Objectif"}</p>
       <p>Montant Actuel : {envelope.amount} €</p>
@@ -27,22 +34,31 @@ const EnvelopeItem = ({ envelope, onUpdate, onDelete }) => {
         <div>
           <p>Objectif : {envelope.goalAmount} €</p>
           <ProgressBar progress={envelope.progress} />
+          <p>Progression : {envelope.progress.toFixed(2)}%</p>
         </div>
       )}
-      <form onSubmit={handleAddAmount}>
+      <form onSubmit={handleAddAmount} style={{ marginTop: "0.5rem" }}>
         <input
           type="number"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           placeholder="Ajouter/Retirer (€)"
           required
+          style={{ marginRight: "0.5rem" }}
         />
         <button type="submit">Mettre à jour</button>
-        {error && <p style={{ color: "red" }}>{error}</p>}
       </form>
+      {error && <p style={{ color: "red" }}>{error}</p>}
       <button
         onClick={() => onDelete(envelope._id)}
-        style={{ marginTop: "10px", backgroundColor: "#dc3545" }}
+        style={{
+          marginTop: "0.5rem",
+          backgroundColor: "#dc3545",
+          color: "#fff",
+          border: "none",
+          padding: "0.5rem",
+          cursor: "pointer",
+        }}
       >
         Supprimer
       </button>

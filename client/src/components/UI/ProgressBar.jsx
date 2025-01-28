@@ -3,9 +3,11 @@
 import React from "react";
 
 const ProgressBar = ({ progress }) => {
+  const cappedProgress = Math.min(Math.max(progress, 0), 100); // Limiter entre 0 et 100
+
   const getColor = () => {
-    if (progress < 50) return "#28a745"; // Vert
-    if (progress < 80) return "#ffc107"; // Jaune
+    if (cappedProgress < 50) return "#28a745"; // Vert
+    if (cappedProgress < 80) return "#ffc107"; // Jaune
     return "#dc3545"; // Rouge
   };
 
@@ -21,7 +23,7 @@ const ProgressBar = ({ progress }) => {
     >
       <div
         style={{
-          width: `${progress}%`,
+          width: `${cappedProgress}%`,
           backgroundColor: getColor(),
           height: "100%",
           borderRadius: "5px",

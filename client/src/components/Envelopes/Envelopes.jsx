@@ -1,59 +1,38 @@
 // client/src/components/Envelopes/Envelopes.jsx
 
-import React, { useState, useEffect } from "react";
-import API from "../../services/api";
+import React, { useState, useEffect, useContext } from "react";
+import { AuthContext } from "../../context/AuthContext";
 import EnvelopeItem from "./EnvelopeItem";
 import CreateEnvelopeForm from "./CreateEnvelopeForm";
 
 const Envelopes = () => {
-  const [envelopes, setEnvelopes] = useState([]);
+  const { envelopes, createEnvelope, updateEnvelope, deleteEnvelope } =
+    useContext(AuthContext);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    fetchEnvelopes();
-  }, []);
-
-  const fetchEnvelopes = async () => {
+  const handleAddEnvelope = async (envelopeData) => {
     try {
-      const { data } = await API.get("/envelopes");
-      setEnvelopes(data);
-    } catch (err) {
-      console.error(err);
-      setError("Erreur lors de la récupération des enveloppes.");
-    }
-  };
-
-  const handleAddEnvelope = async (envelope) => {
-    try {
-      const { data } = await API.post("/envelopes", envelope);
-      setEnvelopes([...envelopes, data]);
+      await createEnvelope(envelopeData);
       setError("");
     } catch (err) {
-      console.error(err);
       setError("Erreur lors de la création de l'enveloppe.");
     }
   };
 
   const handleUpdateEnvelope = async (envelopeId, amount) => {
     try {
-      const { data } = await API.put(`/envelopes/${envelopeId}`, { amount });
-      setEnvelopes(
-        envelopes.map((env) => (env._id === envelopeId ? data : env))
-      );
+      await updateEnvelope(envelopeId, amount);
       setError("");
     } catch (err) {
-      console.error(err);
       setError("Erreur lors de la mise à jour de l'enveloppe.");
     }
   };
 
   const handleDeleteEnvelope = async (envelopeId) => {
     try {
-      await API.delete(`/envelopes/${envelopeId}`);
-      setEnvelopes(envelopes.filter((env) => env._id !== envelopeId));
+      await deleteEnvelope(envelopeId);
       setError("");
     } catch (err) {
-      console.error(err);
       setError("Erreur lors de la suppression de l'enveloppe.");
     }
   };

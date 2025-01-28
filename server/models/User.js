@@ -13,11 +13,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  // Champs d'épargne actuelle
-  savings: [
+  // Champs de comptes et portefeuilles
+  accounts: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Saving",
+      ref: "Account",
     },
   ],
   // Vous pouvez ajouter d'autres informations utilisateur si nécessaire
