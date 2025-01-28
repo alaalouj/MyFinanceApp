@@ -34,9 +34,9 @@ const Envelopes = () => {
     }
   };
 
-  const handleUpdateEnvelope = async (envelopeId, amount) => {
+  const handleUpdateEnvelope = async (envelopeId, updateData) => {
     try {
-      await updateEnvelope(envelopeId, amount);
+      await updateEnvelope(envelopeId, updateData);
       setError("");
     } catch (err) {
       setError("Erreur lors de la mise à jour de l'enveloppe.");
@@ -104,7 +104,8 @@ const Envelopes = () => {
               onDelete={handleDeleteEnvelope}
               onAddMilestone={handleAddMilestone}
               onDeleteMilestone={handleDeleteMilestone}
-              onUpdateMilestone={handleUpdateMilestone} // Assurez-vous de passer cette prop
+              onUpdateMilestone={handleUpdateMilestone}
+              disableExpand={false} // Permet l'expansion et la modification depuis cette page
             />
           ))}
         </ul>

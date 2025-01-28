@@ -2,15 +2,16 @@
 
 const express = require("express");
 const router = express.Router();
-const auth = require("../middleware/auth");
+const auth = require("../middleware/auth"); // Middleware d'authentification
 const {
   createEnvelope,
   getEnvelopes,
   updateEnvelope,
+  deleteEnvelope,
   addMilestone,
   updateMilestone,
   deleteMilestone,
-  deleteEnvelope,
+  getFinancialSummary,
 } = require("../controllers/envelopeController");
 
 // Créer une enveloppe
@@ -19,19 +20,22 @@ router.post("/", auth, createEnvelope);
 // Récupérer toutes les enveloppes
 router.get("/", auth, getEnvelopes);
 
-// Mettre à jour une enveloppe (ajouter/retirer un montant)
+// Mettre à jour une enveloppe
 router.put("/:envelopeId", auth, updateEnvelope);
-
-// Ajouter un seuil/milestone
-router.post("/:envelopeId/milestones", auth, addMilestone);
-
-// Mettre à jour un seuil/milestone
-router.put("/:envelopeId/milestones/:milestoneId", auth, updateMilestone);
-
-// Supprimer un seuil/milestone
-router.delete("/:envelopeId/milestones/:milestoneId", auth, deleteMilestone);
 
 // Supprimer une enveloppe
 router.delete("/:envelopeId", auth, deleteEnvelope);
+
+// Ajouter un milestone
+router.post("/:envelopeId/milestones", auth, addMilestone);
+
+// Mettre à jour un milestone
+router.put("/:envelopeId/milestones/:milestoneId", auth, updateMilestone);
+
+// Supprimer un milestone
+router.delete("/:envelopeId/milestones/:milestoneId", auth, deleteMilestone);
+
+// Récupérer le résumé financier
+router.get("/summary", auth, getFinancialSummary);
 
 module.exports = router;

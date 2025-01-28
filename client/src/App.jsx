@@ -9,7 +9,7 @@ import DashboardPage from "./pages/DashboardPage";
 import ExpensesPage from "./pages/ExpensesPage";
 import IncomesPage from "./pages/IncomesPage";
 import EnvelopesPage from "./pages/EnvelopesPage";
-import BudgetPage from "./pages/BudgetPage"; // Importer la nouvelle page
+import BudgetPage from "./pages/BudgetPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ProtectedRoute from "./components/Layout/ProtectedRoute";

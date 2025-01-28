@@ -1,11 +1,11 @@
 // client/src/components/Layout/Navbar.jsx
 
 import React, { useContext } from "react";
-import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
+import { Link, useNavigate } from "react-router-dom";
 
 const Navbar = () => {
-  const { user, logout, totalBalance } = useContext(AuthContext);
+  const { user, logout, availableMoney } = useContext(AuthContext); // Modifié ici
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -34,9 +34,9 @@ const Navbar = () => {
           </Link>
           <Link to="/budget" style={styles.link}>
             Budget
-          </Link>{" "}
-          {/* Nouveau lien */}
-          <span style={styles.balance}>Solde Total: {totalBalance} €</span>
+          </Link>
+          <span style={styles.balance}>Disponible: {availableMoney} €</span>{" "}
+          {/* Modifié ici */}
           <button onClick={handleLogout} style={styles.button}>
             Déconnexion
           </button>

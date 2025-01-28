@@ -14,7 +14,9 @@ export const AuthProvider = ({ children }) => {
   const [expenses, setExpenses] = useState([]);
   const [incomes, setIncomes] = useState([]);
   const [budgets, setBudgets] = useState([]); // Ajout de l'état des budgets
-  const [totalBalance, setTotalBalance] = useState(0); // Initialize to 0
+  const [totalBalance, setTotalBalance] = useState(0); // Somme totale des comptes et portefeuilles
+  const [totalAllocated, setTotalAllocated] = useState(0); // Somme totale allouée aux enveloppes
+  const [availableMoney, setAvailableMoney] = useState(0); // Argent disponible (non alloué)
 
   // Vérifier si un token existe déjà dans le localStorage lors du montage du composant
   useEffect(() => {
@@ -30,11 +32,20 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  // Recalculate totalBalance whenever accounts change
+  // Recalculer le totalBalance chaque fois que les comptes changent
   useEffect(() => {
     const balance = accounts.reduce((acc, account) => acc + account.balance, 0);
     setTotalBalance(balance);
   }, [accounts]);
+
+  // Recalculer totalAllocated et availableMoney chaque fois que les enveloppes ou le totalBalance changent
+  useEffect(() => {
+    const allocated = envelopes.reduce((acc, env) => acc + env.amount, 0);
+    setTotalAllocated(allocated);
+
+    const available = totalBalance - allocated;
+    setAvailableMoney(available >= 0 ? available : 0);
+  }, [envelopes, totalBalance]);
 
   // Fonction de connexion
   const login = async (email, password) => {
@@ -65,6 +76,8 @@ export const AuthProvider = ({ children }) => {
     setIncomes([]);
     setBudgets([]); // Réinitialiser les budgets
     setTotalBalance(0);
+    setTotalAllocated(0);
+    setAvailableMoney(0);
   };
 
   // Comptes et Portefeuilles
@@ -133,9 +146,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const updateEnvelope = async (envelopeId, amount) => {
+  const updateEnvelope = async (envelopeId, updateData) => {
     try {
-      const { data } = await API.put(`/envelopes/${envelopeId}`, { amount });
+      const { data } = await API.put(`/envelopes/${envelopeId}`, updateData);
       setEnvelopes((prevEnvelopes) =>
         prevEnvelopes.map((env) => (env._id === envelopeId ? data : env))
       );
@@ -166,7 +179,7 @@ export const AuthProvider = ({ children }) => {
         `/envelopes/${envelopeId}/milestones/${milestoneId}`,
         updatedData
       );
-      // Update the envelope's milestones in the state
+      // Mettre à jour les milestones de l'enveloppe dans l'état
       setEnvelopes((prevEnvelopes) =>
         prevEnvelopes.map((env) => (env._id === envelopeId ? data : env))
       );
@@ -216,7 +229,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const { data } = await API.post("/expenses", expenseData);
       setExpenses((prevExpenses) => [...prevExpenses, data]);
-      // Re-fetch accounts and envelopes to update total balance and progress
+      // Re-fetch accounts et enveloppes pour mettre à jour le totalBalance et les allocations
       await fetchAccounts();
       await fetchEnvelopes();
     } catch (err) {
@@ -231,7 +244,7 @@ export const AuthProvider = ({ children }) => {
       setExpenses((prevExpenses) =>
         prevExpenses.map((exp) => (exp._id === expenseId ? data : exp))
       );
-      // Re-fetch accounts and envelopes to update total balance and progress
+      // Re-fetch accounts et enveloppes pour mettre à jour le totalBalance et les allocations
       await fetchAccounts();
       await fetchEnvelopes();
     } catch (err) {
@@ -246,7 +259,7 @@ export const AuthProvider = ({ children }) => {
       setExpenses((prevExpenses) =>
         prevExpenses.filter((exp) => exp._id !== expenseId)
       );
-      // Re-fetch accounts and envelopes to update total balance and progress
+      // Re-fetch accounts et enveloppes pour mettre à jour le totalBalance et les allocations
       await fetchAccounts();
       await fetchEnvelopes();
     } catch (err) {
@@ -269,7 +282,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const { data } = await API.post("/incomes", incomeData);
       setIncomes((prevIncomes) => [...prevIncomes, data]);
-      // Re-fetch accounts and envelopes to update total balance and progress
+      // Re-fetch accounts et enveloppes pour mettre à jour le totalBalance et les allocations
       await fetchAccounts();
       await fetchEnvelopes();
     } catch (err) {
@@ -284,7 +297,7 @@ export const AuthProvider = ({ children }) => {
       setIncomes((prevIncomes) =>
         prevIncomes.map((inc) => (inc._id === incomeId ? data : inc))
       );
-      // Re-fetch accounts and envelopes to update total balance and progress
+      // Re-fetch accounts et enveloppes pour mettre à jour le totalBalance et les allocations
       await fetchAccounts();
       await fetchEnvelopes();
     } catch (err) {
@@ -299,7 +312,7 @@ export const AuthProvider = ({ children }) => {
       setIncomes((prevIncomes) =>
         prevIncomes.filter((inc) => inc._id !== incomeId)
       );
-      // Re-fetch accounts and envelopes to update total balance and progress
+      // Re-fetch accounts et enveloppes pour mettre à jour le totalBalance et les allocations
       await fetchAccounts();
       await fetchEnvelopes();
     } catch (err) {
@@ -382,6 +395,8 @@ export const AuthProvider = ({ children }) => {
         updateBudget,
         deleteBudget,
         totalBalance,
+        totalAllocated, // Fournir le total alloué
+        availableMoney, // Fournir l'argent disponible
       }}
     >
       {children}

@@ -13,8 +13,8 @@ exports.createEnvelope = async (req, res) => {
       user: userId,
       name,
       type,
-      amount,
-      goalAmount: type === "objectif" ? goalAmount : undefined,
+      amount: amount || 0,
+      goalAmount: goalAmount || 0,
       milestones: [],
     });
 
@@ -39,31 +39,46 @@ exports.getEnvelopes = async (req, res) => {
   }
 };
 
-// Mettre à jour une enveloppe (ajouter ou retirer un montant)
+// Mettre à jour une enveloppe (y compris l'objectif et le montant)
 exports.updateEnvelope = async (req, res) => {
   try {
     const userId = req.userId;
     const { envelopeId } = req.params;
-    const { amount } = req.body; // Positive pour ajouter, négatif pour retirer
+    const updateData = req.body;
 
-    const envelope = await Envelope.findOne({ _id: envelopeId, user: userId });
+    const envelope = await Envelope.findOneAndUpdate(
+      { _id: envelopeId, user: userId },
+      updateData,
+      { new: true }
+    );
+
     if (!envelope) {
       return res.status(404).json({ message: "Enveloppe introuvable." });
     }
 
-    envelope.amount += amount;
+    res.status(200).json(envelope);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erreur serveur." });
+  }
+};
 
-    // Mettre à jour les milestones' achieved status
-    if (envelope.type === "objectif" && envelope.goalAmount) {
-      envelope.milestones = envelope.milestones.map((milestone) => ({
-        ...milestone.toObject(),
-        achieved: envelope.amount >= milestone.amount,
-      }));
+// Supprimer une enveloppe
+exports.deleteEnvelope = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { envelopeId } = req.params;
+
+    const envelope = await Envelope.findOneAndDelete({
+      _id: envelopeId,
+      user: userId,
+    });
+
+    if (!envelope) {
+      return res.status(404).json({ message: "Enveloppe introuvable." });
     }
 
-    await envelope.save();
-
-    res.status(200).json(envelope);
+    res.status(200).json({ message: "Enveloppe supprimée avec succès." });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Erreur serveur." });
@@ -78,16 +93,12 @@ exports.addMilestone = async (req, res) => {
     const { name, amount } = req.body;
 
     const envelope = await Envelope.findOne({ _id: envelopeId, user: userId });
+
     if (!envelope) {
       return res.status(404).json({ message: "Enveloppe introuvable." });
     }
 
-    const milestone = {
-      name,
-      amount,
-      achieved: envelope.amount >= amount,
-    };
-
+    const milestone = { name, amount, achieved: false };
     envelope.milestones.push(milestone);
     await envelope.save();
 
@@ -98,14 +109,15 @@ exports.addMilestone = async (req, res) => {
   }
 };
 
-// Mettre à jour un seuil/milestone
+// Mettre à jour un milestone
 exports.updateMilestone = async (req, res) => {
   try {
     const userId = req.userId;
     const { envelopeId, milestoneId } = req.params;
-    const { name, amount } = req.body;
+    const updateData = req.body;
 
     const envelope = await Envelope.findOne({ _id: envelopeId, user: userId });
+
     if (!envelope) {
       return res.status(404).json({ message: "Enveloppe introuvable." });
     }
@@ -115,10 +127,7 @@ exports.updateMilestone = async (req, res) => {
       return res.status(404).json({ message: "Seuil introuvable." });
     }
 
-    milestone.name = name !== undefined ? name : milestone.name;
-    milestone.amount = amount !== undefined ? amount : milestone.amount;
-    milestone.achieved = envelope.amount >= milestone.amount;
-
+    milestone.set(updateData);
     await envelope.save();
 
     res.status(200).json(envelope);
@@ -128,13 +137,14 @@ exports.updateMilestone = async (req, res) => {
   }
 };
 
-// Supprimer un seuil/milestone
+// Supprimer un milestone
 exports.deleteMilestone = async (req, res) => {
   try {
     const userId = req.userId;
     const { envelopeId, milestoneId } = req.params;
 
     const envelope = await Envelope.findOne({ _id: envelopeId, user: userId });
+
     if (!envelope) {
       return res.status(404).json({ message: "Enveloppe introuvable." });
     }
@@ -154,21 +164,37 @@ exports.deleteMilestone = async (req, res) => {
   }
 };
 
-// Supprimer une enveloppe
-exports.deleteEnvelope = async (req, res) => {
+// Calculer le total d'argent et l'argent disponible
+exports.getFinancialSummary = async (req, res) => {
   try {
     const userId = req.userId;
-    const { envelopeId } = req.params;
 
-    const envelope = await Envelope.findOneAndDelete({
-      _id: envelopeId,
-      user: userId,
+    // Récupérer tous les comptes
+    const accounts = await Account.find({ user: userId });
+
+    // Calculer le total dans les comptes
+    const totalAccounts = accounts.reduce(
+      (acc, account) => acc + account.balance,
+      0
+    );
+
+    // Récupérer toutes les enveloppes
+    const envelopes = await Envelope.find({ user: userId });
+
+    // Calculer le total alloué aux enveloppes
+    const totalAllocated = envelopes.reduce(
+      (acc, envelope) => acc + envelope.amount,
+      0
+    );
+
+    // Calculer l'argent disponible
+    const availableMoney = totalAccounts - totalAllocated;
+
+    res.status(200).json({
+      totalAccounts,
+      totalAllocated,
+      availableMoney: availableMoney >= 0 ? availableMoney : 0,
     });
-    if (!envelope) {
-      return res.status(404).json({ message: "Enveloppe introuvable." });
-    }
-
-    res.status(200).json({ message: "Enveloppe supprimée avec succès." });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Erreur serveur." });

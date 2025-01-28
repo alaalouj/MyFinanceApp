@@ -17,6 +17,9 @@ const EnvelopeItem = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditingEnvelope, setIsEditingEnvelope] = useState(false);
   const [editingMilestone, setEditingMilestone] = useState(null);
+  const [transactionType, setTransactionType] = useState("add"); // 'add' ou 'subtract'
+  const [transactionAmount, setTransactionAmount] = useState("");
+  const [transactionError, setTransactionError] = useState("");
 
   const toggleExpand = () => {
     if (disableExpand) return; // Ne pas permettre l'expansion si disableExpand est true
@@ -28,12 +31,42 @@ const EnvelopeItem = ({
     }
   };
 
-  const handleUpdateEnvelope = (envelopeId, amount) => {
-    onUpdate(envelopeId, amount);
+  const handleUpdateEnvelope = (envelopeId, updateData) => {
+    onUpdate(envelopeId, updateData);
   };
 
   const handleUpdateMilestone = (milestoneId, updatedData) => {
     onUpdateMilestone(envelope._id, milestoneId, updatedData);
+  };
+
+  const handleTransaction = async (e) => {
+    e.preventDefault();
+    const amount = parseFloat(transactionAmount);
+    if (isNaN(amount) || amount <= 0) {
+      setTransactionError("Veuillez entrer un montant valide.");
+      return;
+    }
+
+    let newAmount = envelope.amount;
+    if (transactionType === "add") {
+      newAmount += amount;
+    } else {
+      newAmount -= amount;
+      if (newAmount < 0) {
+        setTransactionError("Le montant ne peut pas être négatif.");
+        return;
+      }
+    }
+
+    const updateData = { amount: newAmount };
+
+    try {
+      await handleUpdateEnvelope(envelope._id, updateData);
+      setTransactionAmount("");
+      setTransactionError("");
+    } catch (err) {
+      setTransactionError("Erreur lors de la transaction.");
+    }
   };
 
   return (
@@ -85,6 +118,39 @@ const EnvelopeItem = ({
               >
                 Supprimer Enveloppe
               </button>
+
+              {/* Formulaire de transaction */}
+              <div style={{ marginTop: "1rem" }}>
+                <h5>Transactions :</h5>
+                <form
+                  onSubmit={handleTransaction}
+                  style={styles.transactionForm}
+                >
+                  <select
+                    value={transactionType}
+                    onChange={(e) => setTransactionType(e.target.value)}
+                    style={styles.select}
+                  >
+                    <option value="add">Ajouter</option>
+                    <option value="subtract">Retirer</option>
+                  </select>
+                  <input
+                    type="number"
+                    value={transactionAmount}
+                    onChange={(e) => setTransactionAmount(e.target.value)}
+                    placeholder="Montant (€)"
+                    required
+                    min="0"
+                    style={styles.input}
+                  />
+                  <button type="submit" style={styles.transactionButton}>
+                    {transactionType === "add" ? "Ajouter" : "Retirer"}
+                  </button>
+                </form>
+                {transactionError && (
+                  <p style={{ color: "red" }}>{transactionError}</p>
+                )}
+              </div>
 
               {envelope.type === "objectif" && envelope.goalAmount && (
                 <div style={{ marginTop: "1rem" }}>
@@ -251,10 +317,27 @@ const styles = {
     display: "flex",
     alignItems: "center",
   },
+  transactionForm: {
+    display: "flex",
+    alignItems: "center",
+    marginTop: "0.5rem",
+  },
+  select: {
+    marginRight: "0.5rem",
+    padding: "0.3rem",
+  },
   input: {
     marginRight: "0.5rem",
     padding: "0.3rem",
     flex: "1",
+  },
+  transactionButton: {
+    padding: "0.3rem 0.5rem",
+    cursor: "pointer",
+    border: "none",
+    borderRadius: "3px",
+    backgroundColor: "#28a745",
+    color: "#fff",
   },
 };
 
