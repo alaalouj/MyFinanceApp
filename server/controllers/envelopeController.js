@@ -44,7 +44,12 @@ exports.updateEnvelope = async (req, res) => {
   try {
     const userId = req.userId;
     const { envelopeId } = req.params;
-    const updateData = req.body;
+    const { name, type, amount, goalAmount } = req.body; // Assurez-vous de destructurer correctement
+
+    const updateData = { name, type };
+
+    if (amount !== undefined) updateData.amount = amount;
+    if (goalAmount !== undefined) updateData.goalAmount = goalAmount;
 
     const envelope = await Envelope.findOneAndUpdate(
       { _id: envelopeId, user: userId },

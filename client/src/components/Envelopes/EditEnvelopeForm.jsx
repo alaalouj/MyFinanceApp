@@ -1,11 +1,13 @@
 // client/src/components/Envelopes/EditEnvelopeForm.jsx
 
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
+import { AuthContext } from "../../context/AuthContext";
 
-const EditEnvelopeForm = ({ envelope, onUpdateEnvelope, onCancel }) => {
+const EditEnvelopeForm = ({ envelope, onCancel }) => {
+  const { updateEnvelope } = useContext(AuthContext);
   const [name, setName] = useState(envelope.name);
   const [type, setType] = useState(envelope.type);
-  const [goalAmount, setGoalAmount] = useState(envelope.goalAmount);
+  const [goalAmount, setGoalAmount] = useState(envelope.goalAmount || "");
   const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
@@ -15,9 +17,12 @@ const EditEnvelopeForm = ({ envelope, onUpdateEnvelope, onCancel }) => {
       return;
     }
 
-    if (type === "objectif" && (!goalAmount || parseFloat(goalAmount) <= 0)) {
-      setError("Veuillez entrer un objectif valide.");
-      return;
+    if (type === "objectif") {
+      const goal = parseFloat(goalAmount);
+      if (isNaN(goal) || goal <= 0) {
+        setError("Veuillez entrer un objectif valide.");
+        return;
+      }
     }
 
     const updateData = {
@@ -27,10 +32,11 @@ const EditEnvelopeForm = ({ envelope, onUpdateEnvelope, onCancel }) => {
     };
 
     try {
-      await onUpdateEnvelope(envelope._id, updateData);
+      await updateEnvelope(envelope._id, updateData);
       setError("");
+      onCancel();
     } catch (err) {
-      setError("Erreur lors de la mise à jour de l'enveloppe.");
+      setError(err.message || "Erreur lors de la mise à jour de l'enveloppe.");
     }
   };
 
@@ -86,7 +92,7 @@ const EditEnvelopeForm = ({ envelope, onUpdateEnvelope, onCancel }) => {
 
 const styles = {
   form: {
-    maxWidth: "600px",
+    maxWidth: "500px",
     margin: "1rem auto",
     padding: "1rem",
     border: "1px solid #ccc",

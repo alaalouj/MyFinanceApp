@@ -1,23 +1,25 @@
 // client/src/components/Envelopes/EnvelopeItem.jsx
 
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import EditMilestoneForm from "./EditMilestoneForm";
 import EditEnvelopeForm from "./EditEnvelopeForm";
 import ProgressBar from "../UI/ProgressBar";
+import { AuthContext } from "../../context/AuthContext";
 
 const EnvelopeItem = ({
   envelope,
-  onUpdate,
   onDelete,
-  onAddMilestone,
-  onDeleteMilestone,
-  onUpdateMilestone,
   disableExpand, // Nouveau prop pour désactiver l'expansion
 }) => {
+  const {
+    adjustEnvelopeAmount,
+    onUpdateMilestone,
+    onDeleteMilestone,
+    onAddMilestone,
+  } = useContext(AuthContext);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditingEnvelope, setIsEditingEnvelope] = useState(false);
   const [editingMilestone, setEditingMilestone] = useState(null);
-  const [transactionType, setTransactionType] = useState("add"); // 'add' ou 'subtract'
   const [transactionAmount, setTransactionAmount] = useState("");
   const [transactionError, setTransactionError] = useState("");
 
@@ -28,44 +30,26 @@ const EnvelopeItem = ({
     if (isExpanded) {
       setIsEditingEnvelope(false);
       setEditingMilestone(null);
+      setTransactionError("");
     }
-  };
-
-  const handleUpdateEnvelope = (envelopeId, updateData) => {
-    onUpdate(envelopeId, updateData);
-  };
-
-  const handleUpdateMilestone = (milestoneId, updatedData) => {
-    onUpdateMilestone(envelope._id, milestoneId, updatedData);
   };
 
   const handleTransaction = async (e) => {
     e.preventDefault();
     const amount = parseFloat(transactionAmount);
-    if (isNaN(amount) || amount <= 0) {
-      setTransactionError("Veuillez entrer un montant valide.");
+    if (isNaN(amount) || amount === 0) {
+      setTransactionError(
+        "Veuillez entrer un montant valide (positif ou négatif)."
+      );
       return;
     }
 
-    let newAmount = envelope.amount;
-    if (transactionType === "add") {
-      newAmount += amount;
-    } else {
-      newAmount -= amount;
-      if (newAmount < 0) {
-        setTransactionError("Le montant ne peut pas être négatif.");
-        return;
-      }
-    }
-
-    const updateData = { amount: newAmount };
-
     try {
-      await handleUpdateEnvelope(envelope._id, updateData);
+      await adjustEnvelopeAmount(envelope._id, amount);
       setTransactionAmount("");
       setTransactionError("");
     } catch (err) {
-      setTransactionError("Erreur lors de la transaction.");
+      setTransactionError(err.message || "Erreur lors de la transaction.");
     }
   };
 
@@ -119,32 +103,23 @@ const EnvelopeItem = ({
                 Supprimer Enveloppe
               </button>
 
-              {/* Formulaire de transaction */}
+              {/* Formulaire de transaction simplifié */}
               <div style={{ marginTop: "1rem" }}>
                 <h5>Transactions :</h5>
                 <form
                   onSubmit={handleTransaction}
                   style={styles.transactionForm}
                 >
-                  <select
-                    value={transactionType}
-                    onChange={(e) => setTransactionType(e.target.value)}
-                    style={styles.select}
-                  >
-                    <option value="add">Ajouter</option>
-                    <option value="subtract">Retirer</option>
-                  </select>
                   <input
                     type="number"
                     value={transactionAmount}
                     onChange={(e) => setTransactionAmount(e.target.value)}
-                    placeholder="Montant (€)"
+                    placeholder="Montant (€) (positif pour ajouter, négatif pour retirer)"
                     required
-                    min="0"
                     style={styles.input}
                   />
                   <button type="submit" style={styles.transactionButton}>
-                    {transactionType === "add" ? "Ajouter" : "Retirer"}
+                    Appliquer
                   </button>
                 </form>
                 {transactionError && (
@@ -190,7 +165,7 @@ const EnvelopeItem = ({
                             editingMilestone._id === milestone._id && (
                               <EditMilestoneForm
                                 milestone={editingMilestone}
-                                onUpdateMilestone={handleUpdateMilestone}
+                                onUpdateMilestone={onUpdateMilestone}
                                 onCancel={() => setEditingMilestone(null)}
                               />
                             )}
@@ -208,7 +183,6 @@ const EnvelopeItem = ({
           ) : (
             <EditEnvelopeForm
               envelope={envelope}
-              onUpdateEnvelope={handleUpdateEnvelope}
               onCancel={() => setIsEditingEnvelope(false)}
             />
           )}
@@ -241,7 +215,7 @@ const AddMilestoneForm = ({ onAddMilestone, envelopeId }) => {
       setAmount("");
       setError("");
     } catch (err) {
-      setError("Erreur lors de l'ajout du seuil.");
+      setError(err.message || "Erreur lors de l'ajout du seuil.");
     }
   };
 
@@ -261,6 +235,7 @@ const AddMilestoneForm = ({ onAddMilestone, envelopeId }) => {
         onChange={(e) => setAmount(e.target.value)}
         placeholder="Montant (€)"
         required
+        min="0"
         style={styles.input}
       />
       <button type="submit" style={styles.button}>
@@ -321,10 +296,6 @@ const styles = {
     display: "flex",
     alignItems: "center",
     marginTop: "0.5rem",
-  },
-  select: {
-    marginRight: "0.5rem",
-    padding: "0.3rem",
   },
   input: {
     marginRight: "0.5rem",

@@ -154,7 +154,11 @@ export const AuthProvider = ({ children }) => {
       );
     } catch (err) {
       console.error(err);
-      throw err;
+      if (err.response && err.response.data && err.response.data.message) {
+        throw new Error(err.response.data.message);
+      } else {
+        throw new Error("Erreur lors de la mise à jour de l'enveloppe.");
+      }
     }
   };
 
@@ -365,6 +369,28 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Ajuster le montant d'une enveloppe (ajouter ou retirer)
+  const adjustEnvelopeAmount = async (envelopeId, adjustment) => {
+    try {
+      // Trouvez l'enveloppe actuelle
+      const envelope = envelopes.find((env) => env._id === envelopeId);
+      if (!envelope) throw new Error("Enveloppe non trouvée.");
+
+      // Calculez le nouveau montant
+      const newAmount = envelope.amount + adjustment;
+
+      // Validez que le nouveau montant n'est pas négatif
+      if (newAmount < 0)
+        throw new Error("Le montant de l'enveloppe ne peut pas être négatif.");
+
+      // Mettez à jour l'enveloppe
+      await updateEnvelope(envelopeId, { amount: newAmount });
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -397,6 +423,7 @@ export const AuthProvider = ({ children }) => {
         totalBalance,
         totalAllocated, // Fournir le total alloué
         availableMoney, // Fournir l'argent disponible
+        adjustEnvelopeAmount, // Fournir la fonction d'ajustement
       }}
     >
       {children}
