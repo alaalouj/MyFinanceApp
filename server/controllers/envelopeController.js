@@ -44,18 +44,30 @@ exports.updateEnvelope = async (req, res) => {
   try {
     const userId = req.userId;
     const { envelopeId } = req.params;
-    const { name, type, amount, goalAmount } = req.body; // Assurez-vous de destructurer correctement
+    const { name, type, amount, goalAmount } = req.body;
 
-    const updateData = { name, type };
+    console.log("Données reçues pour la mise à jour:", {
+      name,
+      type,
+      amount,
+      goalAmount,
+    });
 
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (type !== undefined) updateData.type = type;
     if (amount !== undefined) updateData.amount = amount;
     if (goalAmount !== undefined) updateData.goalAmount = goalAmount;
 
+    console.log("Données de mise à jour préparées:", updateData);
+
     const envelope = await Envelope.findOneAndUpdate(
       { _id: envelopeId, user: userId },
-      updateData,
+      { $set: updateData }, // Utiliser $set pour définir les valeurs
       { new: true }
     );
+
+    console.log("Enveloppe après mise à jour:", envelope);
 
     if (!envelope) {
       return res.status(404).json({ message: "Enveloppe introuvable." });
@@ -148,23 +160,25 @@ exports.deleteMilestone = async (req, res) => {
     const userId = req.userId;
     const { envelopeId, milestoneId } = req.params;
 
+    // Rechercher l'enveloppe appartenant à l'utilisateur
     const envelope = await Envelope.findOne({ _id: envelopeId, user: userId });
-
     if (!envelope) {
       return res.status(404).json({ message: "Enveloppe introuvable." });
     }
 
+    // Trouver le milestone par son ID
     const milestone = envelope.milestones.id(milestoneId);
     if (!milestone) {
       return res.status(404).json({ message: "Seuil introuvable." });
     }
 
+    // Supprimer le milestone en utilisant la méthode Mongoose
     milestone.remove();
     await envelope.save();
 
     res.status(200).json(envelope);
   } catch (err) {
-    console.error(err);
+    console.error("Erreur lors de la suppression du seuil:", err);
     res.status(500).json({ message: "Erreur serveur." });
   }
 };

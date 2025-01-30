@@ -372,19 +372,18 @@ export const AuthProvider = ({ children }) => {
   // Ajuster le montant d'une enveloppe (ajouter ou retirer)
   const adjustEnvelopeAmount = async (envelopeId, adjustment) => {
     try {
-      // Trouvez l'enveloppe actuelle
       const envelope = envelopes.find((env) => env._id === envelopeId);
+      console.log("Enveloppe avant ajustement:", envelope);
       if (!envelope) throw new Error("Enveloppe non trouvée.");
 
-      // Calculez le nouveau montant
       const newAmount = envelope.amount + adjustment;
+      console.log(`Ajustement: ${adjustment}, Nouveau Montant: ${newAmount}`);
 
-      // Validez que le nouveau montant n'est pas négatif
       if (newAmount < 0)
         throw new Error("Le montant de l'enveloppe ne peut pas être négatif.");
 
-      // Mettez à jour l'enveloppe
       await updateEnvelope(envelopeId, { amount: newAmount });
+      console.log("Enveloppe mise à jour avec le nouveau montant:", newAmount);
     } catch (err) {
       console.error(err);
       throw err;

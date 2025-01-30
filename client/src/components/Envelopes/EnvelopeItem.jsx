@@ -13,10 +13,11 @@ const EnvelopeItem = ({
 }) => {
   const {
     adjustEnvelopeAmount,
-    onUpdateMilestone,
-    onDeleteMilestone,
-    onAddMilestone,
+    updateMilestone, // Nom corrigé
+    deleteMilestone, // Nom corrigé
+    addMilestone, // Nom corrigé
   } = useContext(AuthContext);
+
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditingEnvelope, setIsEditingEnvelope] = useState(false);
   const [editingMilestone, setEditingMilestone] = useState(null);
@@ -51,6 +52,10 @@ const EnvelopeItem = ({
     } catch (err) {
       setTransactionError(err.message || "Erreur lors de la transaction.");
     }
+  };
+
+  const handleUpdateMilestone = (milestoneId, updatedData) => {
+    updateMilestone(envelope._id, milestoneId, updatedData);
   };
 
   return (
@@ -148,8 +153,9 @@ const EnvelopeItem = ({
                               Modifier
                             </button>
                             <button
-                              onClick={() =>
-                                onDeleteMilestone(envelope._id, milestone._id)
+                              onClick={
+                                () =>
+                                  deleteMilestone(envelope._id, milestone._id) // Utilisez deleteMilestone
                               }
                               style={{
                                 ...styles.button,
@@ -165,7 +171,7 @@ const EnvelopeItem = ({
                             editingMilestone._id === milestone._id && (
                               <EditMilestoneForm
                                 milestone={editingMilestone}
-                                onUpdateMilestone={onUpdateMilestone}
+                                onUpdateMilestone={handleUpdateMilestone} // Utilisez updateMilestone
                                 onCancel={() => setEditingMilestone(null)}
                               />
                             )}
@@ -174,7 +180,7 @@ const EnvelopeItem = ({
                     </ul>
                   )}
                   <AddMilestoneForm
-                    onAddMilestone={onAddMilestone}
+                    onAddMilestone={addMilestone} // Utilisez addMilestone
                     envelopeId={envelope._id}
                   />
                 </div>
