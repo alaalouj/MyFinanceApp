@@ -173,7 +173,7 @@ exports.deleteMilestone = async (req, res) => {
     }
 
     // Supprimer le milestone en utilisant la méthode Mongoose
-    milestone.remove();
+    envelope.milestones.pull(milestoneId);
     await envelope.save();
 
     res.status(200).json(envelope);
