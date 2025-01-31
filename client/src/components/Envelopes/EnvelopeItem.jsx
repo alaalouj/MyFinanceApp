@@ -9,13 +9,14 @@ import { AuthContext } from "../../context/AuthContext";
 const EnvelopeItem = ({
   envelope,
   onDelete,
-  disableExpand, // Nouveau prop pour désactiver l'expansion
+  disableExpand, // Pour désactiver l'expansion si besoin
 }) => {
   const {
     adjustEnvelopeAmount,
-    updateMilestone, // Nom corrigé
-    deleteMilestone, // Nom corrigé
-    addMilestone, // Nom corrigé
+    updateMilestone,
+    deleteMilestone,
+    addMilestone,
+    addEnvelopeHistory, // Nouvelle fonction du contexte
   } = useContext(AuthContext);
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -24,10 +25,16 @@ const EnvelopeItem = ({
   const [transactionAmount, setTransactionAmount] = useState("");
   const [transactionError, setTransactionError] = useState("");
 
+  // Nouvel état pour afficher/masquer l'historique
+  const [showHistory, setShowHistory] = useState(false);
+  // État pour le formulaire d'ajout à l'historique
+  const [historyAmount, setHistoryAmount] = useState("");
+  const [historyComment, setHistoryComment] = useState("");
+  const [historyError, setHistoryError] = useState("");
+
   const toggleExpand = () => {
-    if (disableExpand) return; // Ne pas permettre l'expansion si disableExpand est true
+    if (disableExpand) return;
     setIsExpanded(!isExpanded);
-    // Fermer les formulaires d'édition si l'élément est réduit
     if (isExpanded) {
       setIsEditingEnvelope(false);
       setEditingMilestone(null);
@@ -37,16 +44,15 @@ const EnvelopeItem = ({
 
   const handleTransaction = async (e) => {
     e.preventDefault();
-    const amount = parseFloat(transactionAmount);
-    if (isNaN(amount) || amount === 0) {
+    const amountValue = parseFloat(transactionAmount);
+    if (isNaN(amountValue) || amountValue === 0) {
       setTransactionError(
         "Veuillez entrer un montant valide (positif ou négatif)."
       );
       return;
     }
-
     try {
-      await adjustEnvelopeAmount(envelope._id, amount);
+      await adjustEnvelopeAmount(envelope._id, amountValue);
       setTransactionAmount("");
       setTransactionError("");
     } catch (err) {
@@ -54,8 +60,32 @@ const EnvelopeItem = ({
     }
   };
 
+  // Fonction pour mettre à jour un milestone (déjà existante)
   const handleUpdateMilestone = (milestoneId, updatedData) => {
     updateMilestone(envelope._id, milestoneId, updatedData);
+  };
+
+  // Nouvelle fonction pour ajouter une entrée dans l'historique de l'enveloppe
+  const handleAddHistory = async (e) => {
+    e.preventDefault();
+    // Ici, vous pouvez accepter des montants avec virgule ou point si besoin, on suppose ici que c'est un nombre déjà validé
+    const parsedAmount = parseFloat(historyAmount.replace(",", "."));
+    if (isNaN(parsedAmount)) {
+      setHistoryError("Montant invalide.");
+      return;
+    }
+    try {
+      await addEnvelopeHistory(envelope._id, {
+        amount: parsedAmount,
+        comment: historyComment,
+      });
+      setHistoryAmount("");
+      setHistoryComment("");
+      setHistoryError("");
+      // Vous pouvez également rafraîchir l'historique si besoin (il est mis à jour dans l'état via le contexte)
+    } catch (err) {
+      setHistoryError("Erreur lors de l'ajout à l'historique.");
+    }
   };
 
   return (
@@ -65,7 +95,6 @@ const EnvelopeItem = ({
         <span>{envelope.amount} €</span>
       </div>
 
-      {/* Affichage de la ProgressBar en dessous si type est 'objectif' */}
       {envelope.type === "objectif" && envelope.goalAmount && (
         <div style={{ marginTop: "0.5rem" }}>
           <ProgressBar
@@ -89,11 +118,9 @@ const EnvelopeItem = ({
                 {envelope.type === "simple" ? "Simple" : "Avec Objectif"}
               </p>
               {envelope.type === "objectif" && envelope.goalAmount && (
-                <>
-                  <p>
-                    <strong>Objectif :</strong> {envelope.goalAmount} €
-                  </p>
-                </>
+                <p>
+                  <strong>Objectif :</strong> {envelope.goalAmount} €
+                </p>
               )}
               <button
                 onClick={() => setIsEditingEnvelope(true)}
@@ -108,7 +135,7 @@ const EnvelopeItem = ({
                 Supprimer Enveloppe
               </button>
 
-              {/* Formulaire de transaction simplifié */}
+              {/* Formulaire de transaction existant */}
               <div style={{ marginTop: "1rem" }}>
                 <h5>Transactions :</h5>
                 <form
@@ -132,6 +159,44 @@ const EnvelopeItem = ({
                 )}
               </div>
 
+              {/* Nouveau bouton Historique */}
+              <div style={{ marginTop: "1rem" }}>
+                <button
+                  onClick={() => setShowHistory(!showHistory)}
+                  style={styles.button}
+                >
+                  Historique
+                </button>
+                {showHistory && (
+                  <div style={styles.historyContainer}>
+                    <h5>Historique</h5>
+                    {envelope.history && envelope.history.length > 0 ? (
+                      <ul style={styles.historyList}>
+                        {envelope.history.map((entry) => (
+                          <li key={entry._id} style={styles.historyItem}>
+                            <span>
+                              {new Date(entry.date).toLocaleDateString(
+                                "fr-FR",
+                                {
+                                  weekday: "short",
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                }
+                              )}{" "}
+                              - {entry.amount} € - {entry.comment}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p>Aucune transaction enregistrée.</p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Vous pouvez aussi conserver le formulaire de seuils/milestones existant */}
               {envelope.type === "objectif" && envelope.goalAmount && (
                 <div style={{ marginTop: "1rem" }}>
                   <h5>Seuils/Milestones :</h5>
@@ -153,9 +218,8 @@ const EnvelopeItem = ({
                               Modifier
                             </button>
                             <button
-                              onClick={
-                                () =>
-                                  deleteMilestone(envelope._id, milestone._id) // Utilisez deleteMilestone
+                              onClick={() =>
+                                deleteMilestone(envelope._id, milestone._id)
                               }
                               style={{
                                 ...styles.button,
@@ -165,13 +229,11 @@ const EnvelopeItem = ({
                               Supprimer
                             </button>
                           </div>
-
-                          {/* Formulaire d'édition du seuil */}
                           {editingMilestone &&
                             editingMilestone._id === milestone._id && (
                               <EditMilestoneForm
                                 milestone={editingMilestone}
-                                onUpdateMilestone={handleUpdateMilestone} // Utilisez updateMilestone
+                                onUpdateMilestone={handleUpdateMilestone}
                                 onCancel={() => setEditingMilestone(null)}
                               />
                             )}
@@ -180,7 +242,7 @@ const EnvelopeItem = ({
                     </ul>
                   )}
                   <AddMilestoneForm
-                    onAddMilestone={addMilestone} // Utilisez addMilestone
+                    onAddMilestone={addMilestone}
                     envelopeId={envelope._id}
                   />
                 </div>
@@ -315,6 +377,20 @@ const styles = {
     borderRadius: "3px",
     backgroundColor: "#28a745",
     color: "#fff",
+  },
+  historyContainer: {
+    marginTop: "1rem",
+    border: "1px solid #ddd",
+    padding: "0.5rem",
+    borderRadius: "5px",
+    backgroundColor: "#f9f9f9",
+  },
+  historyList: {
+    listStyle: "none",
+    paddingLeft: 0,
+  },
+  historyItem: {
+    marginBottom: "0.3rem",
   },
 };
 

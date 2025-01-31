@@ -382,10 +382,34 @@ export const AuthProvider = ({ children }) => {
       if (newAmount < 0)
         throw new Error("Le montant de l'enveloppe ne peut pas être négatif.");
 
+      // Mettre à jour le montant de l'enveloppe
       await updateEnvelope(envelopeId, { amount: newAmount });
       console.log("Enveloppe mise à jour avec le nouveau montant:", newAmount);
+
+      // Enregistrer dans l'historique : on enregistre le montant ajusté et on indique un commentaire automatique
+      await addEnvelopeHistory(envelopeId, {
+        amount: adjustment,
+        comment: "Ajustement automatique",
+      });
     } catch (err) {
       console.error(err);
+      throw err;
+    }
+  };
+
+  const addEnvelopeHistory = async (envelopeId, historyData) => {
+    // historyData contiendra { amount: number, date?: dateOptionnel }
+    try {
+      const { data } = await API.post(
+        `/envelopes/${envelopeId}/history`,
+        historyData
+      );
+      // Mettre à jour localement l'enveloppe dans le state
+      setEnvelopes((prevEnvelopes) =>
+        prevEnvelopes.map((env) => (env._id === envelopeId ? data : env))
+      );
+    } catch (err) {
+      console.error("Erreur lors de l'ajout à l'historique:", err);
       throw err;
     }
   };
@@ -423,6 +447,7 @@ export const AuthProvider = ({ children }) => {
         totalAllocated, // Fournir le total alloué
         availableMoney, // Fournir l'argent disponible
         adjustEnvelopeAmount, // Fournir la fonction d'ajustement
+        addEnvelopeHistory,
       }}
     >
       {children}

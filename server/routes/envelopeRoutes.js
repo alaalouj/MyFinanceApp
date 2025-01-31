@@ -12,6 +12,7 @@ const {
   updateMilestone,
   deleteMilestone,
   getFinancialSummary,
+  addHistory,
 } = require("../controllers/envelopeController");
 
 // Créer une enveloppe
@@ -37,5 +38,8 @@ router.delete("/:envelopeId/milestones/:milestoneId", auth, deleteMilestone);
 
 // Récupérer le résumé financier
 router.get("/summary", auth, getFinancialSummary);
+
+// Ajouter une nouvelle entrée d'historique
+router.post("/:envelopeId/history", auth, addHistory);
 
 module.exports = router;

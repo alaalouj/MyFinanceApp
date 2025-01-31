@@ -219,3 +219,26 @@ exports.getFinancialSummary = async (req, res) => {
     res.status(500).json({ message: "Erreur serveur." });
   }
 };
+
+// Ajouter une entrée dans l'historique
+exports.addHistory = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { envelopeId } = req.params;
+    const { amount, comment } = req.body;
+
+    const envelope = await Envelope.findOne({ _id: envelopeId, user: userId });
+    if (!envelope) {
+      return res.status(404).json({ message: "Enveloppe introuvable." });
+    }
+
+    const newHistoryEntry = { amount, comment: comment || "" };
+    envelope.history.push(newHistoryEntry);
+    await envelope.save();
+
+    res.status(200).json(envelope);
+  } catch (err) {
+    console.error("Erreur lors de l'ajout à l'historique:", err);
+    res.status(500).json({ message: "Erreur serveur." });
+  }
+};
