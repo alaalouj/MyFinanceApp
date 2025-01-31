@@ -1,21 +1,32 @@
 // client/src/components/Incomes/EditIncomeForm.jsx
 
 import React, { useState } from "react";
+import { INCOME_CATEGORIES } from "../../constants/categories";
 
 const EditIncomeForm = ({ income, onUpdateIncome, onCancel, accounts }) => {
+  // Initialiser la date à la date du revenu ou aujourd'hui
+  const initialDate = income.date
+    ? income.date.substring(0, 10)
+    : new Date().toISOString().split("T")[0];
+
   const [accountId, setAccountId] = useState(
     income.account ? income.account._id : ""
   );
   const [description, setDescription] = useState(income.description);
-  const [amount, setAmount] = useState(income.amount);
-  const [category, setCategory] = useState(income.category);
-  const [date, setDate] = useState(
-    income.date ? income.date.substring(0, 10) : ""
+  const [amount, setAmount] = useState(
+    income.amount.toString().replace(".", ",")
   );
+  // Définir la catégorie par défaut à "Divers" si non spécifiée
+  const [category, setCategory] = useState(income.category || "Divers");
+  const [date, setDate] = useState(initialDate);
   const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Remplacer les virgules par des points pour le parsing
+    const parsedAmount = parseFloat(amount.replace(",", "."));
+
     if (!accountId) {
       setError("Veuillez sélectionner un compte.");
       return;
@@ -24,25 +35,29 @@ const EditIncomeForm = ({ income, onUpdateIncome, onCancel, accounts }) => {
       setError("Veuillez entrer une description.");
       return;
     }
-    if (amount === "" || parseFloat(amount) <= 0) {
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
       setError("Veuillez entrer un montant valide.");
       return;
     }
     if (category.trim() === "") {
-      setError("Veuillez entrer une catégorie.");
+      setError("Veuillez sélectionner une catégorie.");
       return;
     }
 
     const updatedIncomeData = {
       accountId,
       description,
-      amount: parseFloat(amount),
+      amount: parsedAmount,
       category,
       date: date || undefined,
     };
 
-    onUpdateIncome(income._id, updatedIncomeData);
-    setError("");
+    try {
+      await onUpdateIncome(income._id, updatedIncomeData);
+      setError("");
+    } catch (err) {
+      setError("Erreur lors de la mise à jour du revenu.");
+    }
   };
 
   return (
@@ -60,7 +75,7 @@ const EditIncomeForm = ({ income, onUpdateIncome, onCancel, accounts }) => {
         value={accountId}
         onChange={(e) => setAccountId(e.target.value)}
         required
-        style={{ marginRight: "0.5rem", marginBottom: "0.5rem" }}
+        style={{ marginRight: "0.5rem", marginBottom: "0.5rem", width: "100%" }}
       >
         <option value="">Sélectionner un compte</option>
         {accounts.map((account) => (
@@ -76,29 +91,36 @@ const EditIncomeForm = ({ income, onUpdateIncome, onCancel, accounts }) => {
         onChange={(e) => setDescription(e.target.value)}
         placeholder="Description"
         required
-        style={{ marginRight: "0.5rem", marginBottom: "0.5rem" }}
+        style={{ marginRight: "0.5rem", marginBottom: "0.5rem", width: "100%" }}
       />
       <input
-        type="number"
+        type="text" // Utiliser type="text" pour permettre la virgule
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
         placeholder="Montant (€)"
         required
-        style={{ marginRight: "0.5rem", marginBottom: "0.5rem" }}
+        style={{ marginRight: "0.5rem", marginBottom: "0.5rem", width: "100%" }}
+        pattern="^\d+(,\d{1,2})?$" // Validation HTML pour chiffres avec virgule
+        title="Veuillez entrer un montant valide (ex : 12,34 ou 12.34)"
       />
-      <input
-        type="text"
+      <select
         value={category}
         onChange={(e) => setCategory(e.target.value)}
-        placeholder="Catégorie"
         required
-        style={{ marginRight: "0.5rem", marginBottom: "0.5rem" }}
-      />
+        style={{ marginRight: "0.5rem", marginBottom: "0.5rem", width: "100%" }}
+      >
+        <option value="">Sélectionner une catégorie</option>
+        {INCOME_CATEGORIES.map((cat) => (
+          <option key={cat} value={cat}>
+            {cat}
+          </option>
+        ))}
+      </select>
       <input
         type="date"
         value={date}
         onChange={(e) => setDate(e.target.value)}
-        style={{ marginRight: "0.5rem", marginBottom: "0.5rem" }}
+        style={{ marginRight: "0.5rem", marginBottom: "0.5rem", width: "100%" }}
       />
       <button type="submit" style={{ marginRight: "0.5rem" }}>
         Mettre à jour

@@ -6,6 +6,7 @@ import EditExpenseForm from "./EditExpenseForm";
 const ExpenseItem = ({ expense, onUpdate, onDelete, accounts }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [localError, setLocalError] = useState("");
 
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
@@ -15,11 +16,28 @@ const ExpenseItem = ({ expense, onUpdate, onDelete, accounts }) => {
     }
   };
 
+  // Fonction pour gérer la mise à jour et fermer le formulaire en cas de succès
+  const handleUpdate = async (expenseId, updatedData) => {
+    try {
+      await onUpdate(expenseId, updatedData);
+      setIsEditing(false);
+      setLocalError("");
+    } catch (err) {
+      setLocalError("Erreur lors de la mise à jour de la dépense.");
+    }
+  };
+
   return (
     <li style={styles.item}>
       <div onClick={toggleExpand} style={styles.summary}>
         <span>{expense.description}</span>
-        <span>{expense.amount} €</span>
+        <span>
+          {expense.amount.toLocaleString("fr-FR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}{" "}
+          €
+        </span>
       </div>
       {isExpanded && (
         <div style={styles.details}>
@@ -40,7 +58,12 @@ const ExpenseItem = ({ expense, onUpdate, onDelete, accounts }) => {
               </p>
               <p>
                 <strong>Date :</strong>{" "}
-                {new Date(expense.date).toLocaleDateString()}
+                {new Date(expense.date).toLocaleDateString("fr-FR", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
               </p>
               <button onClick={() => setIsEditing(true)} style={styles.button}>
                 Modifier
@@ -51,11 +74,12 @@ const ExpenseItem = ({ expense, onUpdate, onDelete, accounts }) => {
               >
                 Supprimer
               </button>
+              {localError && <p style={{ color: "red" }}>{localError}</p>}
             </>
           ) : (
             <EditExpenseForm
               expense={expense}
-              onUpdateExpense={onUpdate}
+              onUpdateExpense={handleUpdate}
               onCancel={() => setIsEditing(false)}
               accounts={accounts}
             />

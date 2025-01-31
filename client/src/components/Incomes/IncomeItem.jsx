@@ -6,6 +6,7 @@ import EditIncomeForm from "./EditIncomeForm";
 const IncomeItem = ({ income, onUpdate, onDelete, accounts }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [localError, setLocalError] = useState("");
 
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
@@ -15,11 +16,28 @@ const IncomeItem = ({ income, onUpdate, onDelete, accounts }) => {
     }
   };
 
+  // Fonction pour gérer la mise à jour et fermer le formulaire en cas de succès
+  const handleUpdate = async (incomeId, updatedData) => {
+    try {
+      await onUpdate(incomeId, updatedData);
+      setIsEditing(false);
+      setLocalError("");
+    } catch (err) {
+      setLocalError("Erreur lors de la mise à jour du revenu.");
+    }
+  };
+
   return (
     <li style={styles.item}>
       <div onClick={toggleExpand} style={styles.summary}>
         <span>{income.description}</span>
-        <span>{income.amount} €</span>
+        <span>
+          {income.amount.toLocaleString("fr-FR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}{" "}
+          €
+        </span>
       </div>
       {isExpanded && (
         <div style={styles.details}>
@@ -56,11 +74,12 @@ const IncomeItem = ({ income, onUpdate, onDelete, accounts }) => {
               >
                 Supprimer
               </button>
+              {localError && <p style={{ color: "red" }}>{localError}</p>}
             </>
           ) : (
             <EditIncomeForm
               income={income}
-              onUpdateIncome={onUpdate}
+              onUpdateIncome={handleUpdate}
               onCancel={() => setIsEditing(false)}
               accounts={accounts}
             />
