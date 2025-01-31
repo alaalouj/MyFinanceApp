@@ -60,7 +60,7 @@ const EditIncomeForm = ({ income, onUpdateIncome, onCancel, accounts }) => {
         value={accountId}
         onChange={(e) => setAccountId(e.target.value)}
         required
-        style={{ marginRight: "0.5rem" }}
+        style={{ marginRight: "0.5rem", marginBottom: "0.5rem" }}
       >
         <option value="">Sélectionner un compte</option>
         {accounts.map((account) => (
@@ -76,7 +76,7 @@ const EditIncomeForm = ({ income, onUpdateIncome, onCancel, accounts }) => {
         onChange={(e) => setDescription(e.target.value)}
         placeholder="Description"
         required
-        style={{ marginRight: "0.5rem" }}
+        style={{ marginRight: "0.5rem", marginBottom: "0.5rem" }}
       />
       <input
         type="number"
@@ -84,7 +84,7 @@ const EditIncomeForm = ({ income, onUpdateIncome, onCancel, accounts }) => {
         onChange={(e) => setAmount(e.target.value)}
         placeholder="Montant (€)"
         required
-        style={{ marginRight: "0.5rem" }}
+        style={{ marginRight: "0.5rem", marginBottom: "0.5rem" }}
       />
       <input
         type="text"
@@ -92,13 +92,13 @@ const EditIncomeForm = ({ income, onUpdateIncome, onCancel, accounts }) => {
         onChange={(e) => setCategory(e.target.value)}
         placeholder="Catégorie"
         required
-        style={{ marginRight: "0.5rem" }}
+        style={{ marginRight: "0.5rem", marginBottom: "0.5rem" }}
       />
       <input
         type="date"
         value={date}
         onChange={(e) => setDate(e.target.value)}
-        style={{ marginRight: "0.5rem" }}
+        style={{ marginRight: "0.5rem", marginBottom: "0.5rem" }}
       />
       <button type="submit" style={{ marginRight: "0.5rem" }}>
         Mettre à jour

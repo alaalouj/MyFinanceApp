@@ -40,11 +40,13 @@ exports.createExpense = async (req, res) => {
   }
 };
 
-// Récupérer toutes les dépenses de l'utilisateur avec les détails du compte
+// Récupérer toutes les dépenses de l'utilisateur avec les détails du compte, triées par date décroissante
 exports.getExpenses = async (req, res) => {
   try {
     const userId = req.userId;
-    const expenses = await Expense.find({ user: userId }).populate("account");
+    const expenses = await Expense.find({ user: userId })
+      .populate("account")
+      .sort({ date: -1 }); // Tri par date décroissante
     res.status(200).json(expenses);
   } catch (err) {
     console.error(err);

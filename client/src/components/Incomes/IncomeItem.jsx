@@ -40,7 +40,12 @@ const IncomeItem = ({ income, onUpdate, onDelete, accounts }) => {
               </p>
               <p>
                 <strong>Date :</strong>{" "}
-                {new Date(income.date).toLocaleDateString()}
+                {new Date(income.date).toLocaleDateString("fr-FR", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
               </p>
               <button onClick={() => setIsEditing(true)} style={styles.button}>
                 Modifier

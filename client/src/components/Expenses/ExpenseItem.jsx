@@ -55,7 +55,7 @@ const ExpenseItem = ({ expense, onUpdate, onDelete, accounts }) => {
           ) : (
             <EditExpenseForm
               expense={expense}
-              onUpdate={onUpdate}
+              onUpdateExpense={onUpdate}
               onCancel={() => setIsEditing(false)}
               accounts={accounts}
             />
